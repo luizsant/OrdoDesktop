@@ -1,7 +1,7 @@
 #!/bin/bash
 # Gera ordo-desktop_<versão>_all.deb
 set -e
-VER="${1:-1.10.1}"  # versão: argumento (usado pelo CI com a tag) ou padrão
+VER="${1:-1.11.0}"  # versão: argumento (usado pelo CI com a tag) ou padrão
 cd "$(dirname "$0")"
 B=build/ordo-desktop_${VER}_all
 rm -rf build && mkdir -p $B/DEBIAN $B/usr/bin $B/usr/share/ordo-desktop $B/usr/share/applications

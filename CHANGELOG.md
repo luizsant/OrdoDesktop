@@ -6,6 +6,13 @@ Todas as mudanças relevantes do Ordo Desktop. O formato segue o
 
 ## [Não lançado]
 
+## [1.11.0] - 2026-10-29
+
+### Adicionado
+- Busca no card do relógio para achar itens nas caixas, ignorando maiúsculas e acentos. As caixas
+  filtram enquanto você digita (as sem resultado ficam apagadas e o contador mostra "1/4"),
+  Enter abre o primeiro resultado e Esc limpa.
+
 ## [1.10.1] - 2026-10-29
 
 ### Corrigido

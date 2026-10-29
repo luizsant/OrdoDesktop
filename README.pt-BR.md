@@ -43,6 +43,8 @@ está na sua Área de Trabalho em caixas por categoria e as mantém atualizadas 
   Brasil, G1, Folha, BBC News Brasil…), Portugal, Estados Unidos, Reino Unido, Espanha, Argentina e
   Mundo (BBC, DW, France 24, Al Jazeera…). Você escolhe o país e as fontes; clique na manchete para
   abrir no navegador.
+- **Busca** no card do relógio: digite para achar itens nas caixas (ignora maiúsculas e acentos);
+  as caixas filtram enquanto você digita, Enter abre o primeiro resultado e Esc limpa.
 - **Notas adesivas** coloridas, salvas automaticamente.
 - **Sem ícone na bandeja**: tudo é configurado pelo botão direito sobre qualquer caixa,
   o relógio ou uma nota.
@@ -96,6 +98,7 @@ padrão do Ubuntu) e Gtk4 Desktop Icons NG.
 
 | Ação | Como |
 | --- | --- |
+| Achar um item nas caixas | Digite no campo de busca do card do relógio; Enter abre, Esc limpa |
 | Abrir as configurações | Botão direito no título ou área vazia de uma caixa, no relógio ou numa nota |
 | Mover uma caixa ou o relógio | Arrastar pelo título (ou pelo card do relógio) |
 | Redimensionar uma caixa | Arrastar o canto ◢ |

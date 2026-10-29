@@ -13,6 +13,7 @@ import subprocess
 import sys
 import threading
 import time
+import unicodedata
 import urllib.parse
 import urllib.request
 import webbrowser
@@ -145,6 +146,15 @@ window.org-window { background-color: transparent; }
 .wx-day-min { color: rgba(255,255,255,0.5); font-size: 8.5pt; }
 .wx-icon { color: #ffd76a; }
 
+.ordo-search { background-color: rgba(255,255,255,0.10); color: #ffffff; border: 1px solid rgba(255,255,255,0.18);
+               border-radius: 9px; box-shadow: none; caret-color: #ffffff; margin-top: 10px; }
+.ordo-search:focus { border-color: rgba(124,140,255,0.8); background-color: rgba(255,255,255,0.14); }
+.ordo-search image { color: rgba(255,255,255,0.6); }
+.search-row { border-radius: 8px; padding: 4px 6px; }
+.search-row:hover, .search-row.first { background-color: rgba(255,255,255,0.10); }
+.search-name { color: #ffffff; font-size: 9.5pt; }
+.search-where { color: rgba(255,255,255,0.45); font-size: 7.5pt; }
+.search-empty { color: rgba(255,255,255,0.5); font-size: 8.5pt; padding: 6px; }
 .card-title { color: rgba(255,255,255,0.55); font-size: 8pt; font-weight: 700; letter-spacing: 1px; }
 .card-meta { color: rgba(255,255,255,0.40); font-size: 8pt; }
 .mk-name { color: #ffffff; font-size: 9.5pt; font-weight: 600; }
@@ -286,6 +296,11 @@ WEATHER_CODES = {
     99: ("Trovoadas com granizo", "weather-storm-symbolic", "weather-storm-symbolic"),
 }
 
+
+
+def fold(text):
+    """Minúsculas e sem acentos, para a busca: "Orçamento" combina com "orcamento"."""
+    return "".join(c for c in unicodedata.normalize("NFD", text.casefold()) if unicodedata.category(c) != "Mn")
 
 
 def desktop_dir():
@@ -590,6 +605,7 @@ class Fence(Gtk.Window):
         self.flow.set_activate_on_single_click(False)
         self.flow.connect("child-activated", lambda _f, child: child.item.open())
         self.flow.set_sort_func(lambda a, b: (a.item.sort_key > b.item.sort_key) - (a.item.sort_key < b.item.sort_key))
+        self.flow.set_filter_func(lambda child: self.app.matches(child.item))
         self.scroll.add(self.flow)
 
         body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -1838,6 +1854,15 @@ class ClockCard(Gtk.Window):
         card.pack_start(row, False, False, 0)
         card.pack_start(self.date_lbl, False, False, 0)
         card.pack_start(self.extra_lbl, False, False, 4)
+        self.search = Gtk.SearchEntry(placeholder_text="Buscar nas caixas")
+        self.search.get_style_context().add_class("ordo-search")
+        self.search.connect("search-changed", lambda e: self.app.set_query(e.get_text()))
+        self.search.connect("activate", lambda _e: self.open_first())
+        self.search.connect("stop-search", lambda e: e.set_text(""))  # Esc limpa
+        card.pack_start(self.search, False, False, 0)
+        self.results = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1)
+        self.results.set_margin_top(4)
+        card.pack_start(self.results, False, False, 0)
         self.card = card
         self.gadgets = None
         self.set_gadgets(self.app.cfg["show_gadgets"])
@@ -1853,6 +1878,56 @@ class ClockCard(Gtk.Window):
         self.connect("configure-event", self.on_configure)
         self.tick()
         GLib.timeout_add(1000 - GLib.DateTime.new_now_local().get_microsecond() // 1000, self.align_tick)
+
+    MAX_RESULTS = 6
+
+    def show_results(self, query, items):
+        for c in self.results.get_children():
+            c.destroy()
+        self.first_item = items[0] if items else None
+        if query and not items:
+            empty = Gtk.Label(label="Nada nas caixas com esse nome.", xalign=0)
+            empty.get_style_context().add_class("search-empty")
+            self.results.pack_start(empty, False, False, 0)
+        for i, item in enumerate(items[: self.MAX_RESULTS]):
+            ev = Gtk.EventBox()
+            row = Gtk.Box(spacing=8)
+            row.get_style_context().add_class("search-row")
+            if i == 0:
+                row.get_style_context().add_class("first")  # é o que o Enter abre
+            row.pack_start(Gtk.Image.new_from_pixbuf(item.pixbuf(24)), False, False, 0)
+            texts = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            name = Gtk.Label(label=item.display_name, xalign=0, ellipsize=Pango.EllipsizeMode.MIDDLE)
+            name.get_style_context().add_class("search-name")
+            where = Gtk.Label(label=f"em {CAT_BY_KEY[item.category][1]}", xalign=0)
+            where.get_style_context().add_class("search-where")
+            texts.pack_start(name, False, False, 0)
+            texts.pack_start(where, False, False, 0)
+            row.pack_start(texts, True, True, 0)
+            ev.add(row)
+            ev.set_tooltip_text(item.path)
+            ev.connect("button-press-event", self.on_result_press, item)
+            self.results.pack_start(ev, False, False, 0)
+        if len(items) > self.MAX_RESULTS:
+            more = Gtk.Label(label=f"+ {len(items) - self.MAX_RESULTS} nas caixas destacadas", xalign=0)
+            more.get_style_context().add_class("search-where")
+            more.set_margin_start(6)
+            self.results.pack_start(more, False, False, 0)
+        self.results.show_all()
+        self.resize(1, 1)
+
+    def on_result_press(self, _w, ev, item):
+        if ev.button == 1:
+            item.open()
+            self.search.set_text("")
+        elif ev.button == 3:
+            show_in_files(item.gfile)
+        return True
+
+    def open_first(self):
+        if getattr(self, "first_item", None):
+            self.first_item.open()
+            self.search.set_text("")
 
     def set_gadgets(self, show):
         if show and not self.gadgets:
@@ -1904,6 +1979,8 @@ class OrganizerApp(Gtk.Application):
         self.clock = None
         self.item_count = 0
         self.notes = []
+        self.query = ""
+        self.all_items = []
         self._save_id = 0
         self._refresh_id = 0
         self.visible = True
@@ -1975,6 +2052,7 @@ class OrganizerApp(Gtk.Application):
         groups = {}
         items = scan_desktop(self.cfg["show_hidden"])
         self.item_count = len(items)
+        self.all_items = items
         overrides = self.cfg["overrides"]
         for it in items:
             if overrides.get(it.name) in CAT_BY_KEY:
@@ -1997,6 +2075,8 @@ class OrganizerApp(Gtk.Application):
                 del self.fences[key]
         if self.clock:
             self.clock.tick()
+        if self.query:  # arquivo novo/renomeado durante uma busca: reaplica o filtro
+            self.set_query(self.query)
         return False
 
     def auto_layout(self):
@@ -2031,6 +2111,23 @@ class OrganizerApp(Gtk.Application):
         g = fence.geom()
         g.update(x=wa.x + wa.width // 2 - 170, y=wa.y + wa.height // 2 - 110, w=340, h=220)
         fence.apply_geometry()
+
+    # ---- busca ----
+    def matches(self, item):
+        return not self.query or self.query in fold(item.display_name) or self.query in fold(item.name)
+
+    def set_query(self, text):
+        self.query = fold(text.strip())
+        for f in self.fences.values():
+            f.flow.invalidate_filter()
+            children = f.flow.get_children()
+            hits = sum(1 for c in children if self.matches(c.item))
+            Gtk.Widget.set_opacity(f, 1.0 if hits else 0.3)  # caixa sem resultado fica apagada
+            f.count_lbl.set_text(f"{hits}/{len(children)}" if self.query else str(len(children)))
+        found = sorted((i for i in self.all_items if self.query and self.matches(i)),
+                       key=lambda i: (not fold(i.display_name).startswith(self.query), i.sort_key))
+        if self.clock:
+            self.clock.show_results(self.query, found)
 
     # ---- notas ----
     def show_note(self, data):

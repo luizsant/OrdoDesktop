@@ -46,6 +46,8 @@ on your Desktop into boxes by category and keeps them up to date in real time.
   Folha, BBC News Brasil…), Portugal, United States, United Kingdom, Spain, Argentina and World
   (BBC, DW, France 24, Al Jazeera…). Pick the country and the sources; click a headline to open it
   in the browser.
+- **Search** in the clock card: type to find items in your boxes (case- and accent-insensitive);
+  boxes filter as you type, Enter opens the first result and Esc clears.
 - **Sticky notes** in several colors, saved automatically.
 - **No tray icon**: everything is configured by right-clicking any box, the clock or a note.
 - Starts with your session and hides the native desktop icons while it is running
@@ -98,6 +100,7 @@ Native desktop icons supported by the hide option: Zorin Desktop Icons, Desktop 
 
 | Action | How |
 | --- | --- |
+| Find an item in the boxes | Type in the search field of the clock card; Enter opens, Esc clears |
 | Open the settings | Right-click a box title or empty area, the clock or a note |
 | Move a box or the clock | Drag it by the title (or by the clock card) |
 | Resize a box | Drag the ◢ corner |
