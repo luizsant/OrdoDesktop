@@ -6,6 +6,12 @@ Todas as mudanças relevantes do Ordo Desktop. O formato segue o
 
 ## [Não lançado]
 
+## [1.10.1] - 2026-10-29
+
+### Corrigido
+- Menu dos cards de mercado e notícias ficava longo demais e escondia as opções de exibição.
+  Agora tem "Ocultar este card" no topo, e país, fontes e configurações gerais em submenus.
+
 ## [1.10.0] - 2026-10-29
 
 ### Adicionado

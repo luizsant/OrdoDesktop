@@ -1401,9 +1401,9 @@ class InfoCard(Gtk.Window):
         elif ev.button == 3:
             menu = self.card_menu()
             menu.append(Gtk.SeparatorMenuItem())
-            for mi in self.app.build_menu().get_children():  # menu geral logo abaixo
-                mi.get_parent().remove(mi)
-                menu.append(mi)
+            general = Gtk.MenuItem(label="Configurações")  # menu geral num submenu: o do card fica curto
+            general.set_submenu(self.app.build_menu())
+            menu.append(general)
             menu.show_all()
             menu.attach_to_widget(self, None)
             menu.popup_at_pointer(ev)
@@ -1412,10 +1412,19 @@ class InfoCard(Gtk.Window):
 
     def card_menu(self):
         menu = Gtk.Menu()
+        hide = Gtk.MenuItem(label="Ocultar este card")
+        hide.connect("activate", lambda _m: self.hide_card())
+        menu.append(hide)
+        menu.append(Gtk.SeparatorMenuItem())
         mi = Gtk.MenuItem(label="Atualizar agora")
         mi.connect("activate", lambda _m: self.refresh())
         menu.append(mi)
         return menu
+
+    def hide_card(self):
+        # Volta pelo botão direito em qualquer caixa → Mostrar mercado financeiro / Mostrar notícias.
+        GLib.idle_add(lambda: (self.app.toggle_market if self.key == "market" else self.app.toggle_news)(False)
+                      and False)
 
     def on_configure(self, _w, ev):
         self.app.cfg["cards"][self.key] = {"x": ev.x, "y": ev.y}
@@ -1660,16 +1669,16 @@ class NewsCard(InfoCard):
             sub.append(mi)
         country_item.set_submenu(sub)
         menu.append(country_item)
-        menu.append(Gtk.SeparatorMenuItem())
-        head = Gtk.MenuItem(label=f"Fontes — {NEWS_COUNTRIES[self.country()][0]}")
-        head.set_sensitive(False)
-        menu.append(head)
+        sources_item = Gtk.MenuItem(label=f"Fontes ({NEWS_COUNTRIES[self.country()][0]})")
+        sub = Gtk.Menu()
         active = self.sources()
         for key, (name, _url, _on) in NEWS_COUNTRIES[self.country()][1].items():
             mi = Gtk.CheckMenuItem(label=name)
             mi.set_active(key in active)
             mi.connect("toggled", lambda m, k=key: self.toggle_source(k, m.get_active()))
-            menu.append(mi)
+            sub.append(mi)
+        sources_item.set_submenu(sub)
+        menu.append(sources_item)
         return menu
 
     def set_country(self, code):

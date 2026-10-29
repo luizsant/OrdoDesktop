@@ -105,7 +105,8 @@ padrão do Ubuntu) e Gtk4 Desktop Icons NG.
 | Duração do timer de foco | Botão direito no botão Foco |
 | Editar os ativos do mercado | Botão direito no card de mercado → Editar ativos |
 | Escolher país e fontes das notícias | Botão direito no card de notícias → País e lista de fontes |
-| Mostrar/ocultar mercado ou notícias | Botão direito em qualquer card → Mostrar mercado financeiro / Mostrar notícias |
+| Ocultar o card de mercado ou de notícias | Botão direito no card → Ocultar este card |
+| Mostrar de novo | Botão direito em qualquer caixa → Mostrar mercado financeiro / Mostrar notícias |
 
 ## Fontes de dados
 

@@ -107,7 +107,8 @@ Native desktop icons supported by the hide option: Zorin Desktop Icons, Desktop 
 | Focus timer duration | Right-click the Foco ("Focus") button |
 | Edit the market assets | Right-click the market card → Editar ativos ("Edit assets") |
 | Choose news country and sources | Right-click the news card → País ("Country") and the source list |
-| Show/hide market or news | Right-click anywhere → Mostrar mercado financeiro / Mostrar notícias |
+| Hide the market or news card | Right-click the card → Ocultar este card ("Hide this card") |
+| Show it again | Right-click any box → Mostrar mercado financeiro / Mostrar notícias |
 
 ## Data sources
 
