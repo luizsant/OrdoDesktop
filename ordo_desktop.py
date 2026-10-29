@@ -111,6 +111,12 @@ window.org-window { background-color: transparent; }
     border: 1px solid rgba(255, 255, 255, 0.09);
     padding: 14px 26px 16px 26px;
 }
+/* Cards de mercado e noticias seguem o estilo das caixas (o do relogio fica fixo) */
+.clock-card.theme-vidro { background-color: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28); }
+.clock-card.theme-vidro label { text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
+.clock-card.theme-contorno { background-color: rgba(124,140,255,0.08); border: 2px solid rgba(124,140,255,0.70); }
+.clock-card.theme-compacto { background-color: rgba(6,7,10,0.86); border: none; border-radius: 10px; }
+.clock-card .grip { color: rgba(255,255,255,0.35); }
 .clock-time { color: #ffffff; font-size: 46pt; font-weight: 300; }
 .clock-sec { color: rgba(255,255,255,0.55); font-size: 18pt; font-weight: 300; }
 .clock-date { color: rgba(255,255,255,0.85); font-size: 12pt; }
@@ -298,6 +304,234 @@ WEATHER_CODES = {
 
 
 
+# ---------------------------------------------------------------------------
+# Idiomas. O texto em português é a chave; inglês e espanhol ficam nesta tabela.
+# Texto sem tradução aparece em português.
+# ---------------------------------------------------------------------------
+LANGUAGES = {"auto": "Automático (sistema)", "pt": "Português", "en": "English", "es": "Español"}
+LANG = "pt"
+
+TR = {
+    "en": {
+        # caixas e estilos
+        "Aplicativos": "Apps", "Pastas": "Folders", "PDFs": "PDFs", "Documentos": "Documents",
+        "Planilhas": "Spreadsheets", "Apresentações": "Presentations", "Imagens": "Images", "Vídeos": "Videos",
+        "Áudio": "Audio", "Compactados": "Archives", "Instaladores": "Installers", "Outros": "Other",
+        "Padrão (degradê)": "Default (gradient)", "Vidro claro": "Light glass", "Contorno colorido": "Colored outline",
+        "Preto compacto": "Compact black",
+        "Amarelo": "Yellow", "Lilás": "Lilac", "Azul": "Blue", "Verde": "Green", "Rosa": "Pink", "Cinza": "Gray",
+        # itens
+        "Abrir": "Open", "Mostrar no Gerenciador de Arquivos": "Show in Files", "Renomear…": "Rename…",
+        "Copiar caminho": "Copy path", "Mover para a caixa": "Move to box",
+        "Voltar para a caixa automática": "Back to automatic box", "Mover para a lixeira": "Move to trash",
+        "Não foi possível abrir “{name}”.": "Couldn't open “{name}”.",
+        "Já existe “{name}” na área de trabalho.": "“{name}” already exists on the desktop.",
+        "Não foi possível mover “{name}”.": "Couldn't move “{name}”.",
+        "Não foi possível mover “{name}” para a lixeira.": "Couldn't move “{name}” to the trash.",
+        "Renomear": "Rename", "Cancelar": "Cancel", "Não foi possível renomear.": "Couldn't rename.",
+        # gadgets
+        "SISTEMA": "SYSTEM", "ATALHOS": "SHORTCUTS", "CPU": "CPU", "Memória": "Memory", "Disco": "Disk",
+        "{n} GB livres": "{n} GB free",
+        "Reorganizar": "Rearrange", "Captura": "Screenshot", "Calculadora": "Calculator", "Terminal": "Terminal",
+        "Downloads": "Downloads", "Lixeira": "Trash", "Lixeira ({n})": "Trash ({n})", "Bloquear": "Lock",
+        "Não perturbe": "Do not disturb", "Foco": "Focus", "Recolher": "Collapse", "Expandir": "Expand",
+        "Monitor": "Monitor", "Nova nota": "New note",
+        "Clique para iniciar/parar · botão direito escolhe a duração":
+            "Click to start/stop · right-click to pick the duration",
+        "Abre a ferramenta de captura de tela (tecla Print)": "Opens the screenshot tool (Print key)",
+        "Reorganiza as caixas automaticamente": "Rearranges the boxes automatically",
+        "Notificações silenciadas": "Notifications muted", "Silenciar notificações": "Mute notifications",
+        "{n} minutos": "{n} minutes", "Tempo de foco concluído": "Focus time is over",
+        "{n} minutos — hora de uma pausa.": "{n} minutes — time for a break.",
+        # tempo
+        "agora": "now", "há {n} min": "{n} min ago", "há {n} h": "{n} h ago",
+        "Clique para atualizar · botão direito para trocar a cidade": "Click to refresh · right-click to change city",
+        "Carregando clima…": "Loading weather…", "Defina sua cidade": "Set your city",
+        "Botão direito aqui para escolher": "Right-click here to choose", "Clima indisponível": "Weather unavailable",
+        "Sem conexão — tento de novo em 20 min": "Offline — retrying in 20 min",
+        "{city} · sensação {t}°": "{city} · feels like {t}°", "Máx {hi}° · mín {lo}°": "High {hi}° · low {lo}°",
+        " · chuva {p}%": " · rain {p}%", "Umidade {h}% · vento {w} km/h": "Humidity {h}% · wind {w} km/h",
+        "Atualizado às {t} · clique para atualizar · botão direito para trocar a cidade":
+            "Updated at {t} · click to refresh · right-click to change city",
+        "Cidade do clima": "Weather city", "Digite a cidade e tecle Enter": "Type the city and press Enter",
+        "Nada encontrado.": "Nothing found.", "Sem conexão.": "Offline.",
+        "Céu limpo": "Clear sky", "Predomínio de sol": "Mostly sunny", "Parcialmente nublado": "Partly cloudy",
+        "Nublado": "Overcast", "Neblina": "Fog", "Neblina com geada": "Freezing fog", "Garoa fraca": "Light drizzle",
+        "Garoa": "Drizzle", "Garoa forte": "Heavy drizzle", "Chuva fraca": "Light rain", "Chuva": "Rain",
+        "Chuva forte": "Heavy rain", "Neve fraca": "Light snow", "Neve": "Snow", "Neve forte": "Heavy snow",
+        "Pancadas de chuva": "Rain showers", "Pancadas fortes": "Heavy showers", "Trovoadas": "Thunderstorms",
+        "Trovoadas com granizo": "Thunderstorms with hail",
+        # notas
+        "Nota": "Note", "Cor": "Color", "Apagar nota": "Delete note", "Título": "Title",
+        "Apagar esta nota?": "Delete this note?", "O conteúdo da nota será perdido.": "The note's content will be lost.",
+        # cards
+        "Configurações": "Settings", "Ocultar este card": "Hide this card", "Tamanho automático": "Automatic size",
+        "Atualizar agora": "Refresh now", "Mercado": "Market", "Notícias": "News", "Relógio": "Clock",
+        "Fontes: Yahoo Finance · Banco Central · atraso de até 15 min":
+            "Sources: Yahoo Finance · Brazilian Central Bank · up to 15 min delay",
+        "Editar ativos…": "Edit assets…", "sem conexão": "offline", "indisponível": "unavailable",
+        "carregando…": "loading…", "atualizado {t}": "updated {t}",
+        "Ativos do card de mercado": "Market card assets", "Restaurar padrão": "Restore defaults", "Salvar": "Save",
+        "Um ativo por linha, no formato  SÍMBOLO = Nome.\nAções da B3: PETR4, VALE3, BBAS3… (o .SA é colocado "
+        "sozinho). Índices: ^BVSP, ^GSPC. Moedas: BRL=X (dólar), EURBRL=X. Cripto: BTC-BRL, ETH-BRL.":
+            "One asset per line, as  SYMBOL = Name.\nBrazilian stocks: PETR4, VALE3, BBAS3… (.SA is added "
+            "automatically). Other stocks: AAPL, MSFT. Indices: ^BVSP, ^GSPC. Currencies: BRL=X (dollar in BRL), "
+            "EURUSD=X. Crypto: BTC-USD, BTC-BRL.",
+        "Dólar": "Dollar", "Itaú": "Itaú",
+        "País": "Country", "Fontes ({c})": "Sources ({c})",
+        "Nenhuma fonte escolhida — botão direito para escolher.": "No source selected — right-click to choose.",
+        "Não foi possível carregar as notícias agora.": "Couldn't load the news right now.",
+        "Clique para abrir no navegador": "Click to open in the browser",
+        "NOTÍCIAS · {c}": "NEWS · {c}",
+        "Brasil": "Brazil", "Portugal": "Portugal", "Estados Unidos": "United States", "Reino Unido": "United Kingdom",
+        "Espanha": "Spain", "Argentina": "Argentina", "Mundo": "World",
+        "Estadão (política)": "Estadão (politics)", "Valor (economia)": "Valor (business)",
+        "InfoMoney (economia)": "InfoMoney (business)", "Exame (economia)": "Exame (business)",
+        "The Guardian (mundo)": "The Guardian (world)", "ONU News (português)": "UN News (Portuguese)",
+        # relógio e busca
+        "Buscar nas caixas": "Search the boxes", "Nada nas caixas com esse nome.": "Nothing in the boxes by that name.",
+        "em {box}": "in {box}", "+ {n} nas caixas destacadas": "+ {n} in the highlighted boxes",
+        "Bom dia": "Good morning", "Boa tarde": "Good afternoon", "Boa noite": "Good evening",
+        "semana {n}": "week {n}", "{n} itens na área de trabalho": "{n} items on the desktop",
+        # menu
+        "Reorganizar automaticamente": "Rearrange automatically", "Recolher todas": "Collapse all",
+        "Expandir todas": "Expand all", "Abrir pasta da Área de Trabalho": "Open Desktop folder",
+        "Estilo das caixas": "Box style", "Idioma": "Language", "Mostrar relógio": "Show clock",
+        "Mostrar segundos": "Show seconds", "Mostrar gadgets abaixo do relógio": "Show gadgets below the clock",
+        "Mostrar mercado financeiro": "Show market", "Mostrar notícias": "Show news",
+        "Ocultar ícones nativos da área de trabalho": "Hide native desktop icons",
+        "Mostrar arquivos ocultos": "Show hidden files", "Iniciar com o sistema": "Start with the system",
+        "Sair": "Quit", "Automático (sistema)": "Automatic (system)",
+    },
+    "es": {
+        "Aplicativos": "Aplicaciones", "Pastas": "Carpetas", "PDFs": "PDFs", "Documentos": "Documentos",
+        "Planilhas": "Hojas de cálculo", "Apresentações": "Presentaciones", "Imagens": "Imágenes", "Vídeos": "Vídeos",
+        "Áudio": "Audio", "Compactados": "Comprimidos", "Instaladores": "Instaladores", "Outros": "Otros",
+        "Padrão (degradê)": "Predeterminado (degradado)", "Vidro claro": "Cristal claro",
+        "Contorno colorido": "Contorno de color", "Preto compacto": "Negro compacto",
+        "Amarelo": "Amarillo", "Lilás": "Lila", "Azul": "Azul", "Verde": "Verde", "Rosa": "Rosa", "Cinza": "Gris",
+        "Abrir": "Abrir", "Mostrar no Gerenciador de Arquivos": "Mostrar en Archivos", "Renomear…": "Renombrar…",
+        "Copiar caminho": "Copiar ruta", "Mover para a caixa": "Mover a la caja",
+        "Voltar para a caixa automática": "Volver a la caja automática", "Mover para a lixeira": "Mover a la papelera",
+        "Não foi possível abrir “{name}”.": "No se pudo abrir «{name}».",
+        "Já existe “{name}” na área de trabalho.": "Ya existe «{name}» en el escritorio.",
+        "Não foi possível mover “{name}”.": "No se pudo mover «{name}».",
+        "Não foi possível mover “{name}” para a lixeira.": "No se pudo mover «{name}» a la papelera.",
+        "Renomear": "Renombrar", "Cancelar": "Cancelar", "Não foi possível renomear.": "No se pudo renombrar.",
+        "SISTEMA": "SISTEMA", "ATALHOS": "ACCESOS", "CPU": "CPU", "Memória": "Memoria", "Disco": "Disco",
+        "{n} GB livres": "{n} GB libres",
+        "Reorganizar": "Reorganizar", "Captura": "Captura", "Calculadora": "Calculadora", "Terminal": "Terminal",
+        "Downloads": "Descargas", "Lixeira": "Papelera", "Lixeira ({n})": "Papelera ({n})", "Bloquear": "Bloquear",
+        "Não perturbe": "No molestar", "Foco": "Enfoque", "Recolher": "Contraer", "Expandir": "Expandir",
+        "Monitor": "Monitor", "Nova nota": "Nueva nota",
+        "Clique para iniciar/parar · botão direito escolhe a duração":
+            "Clic para iniciar/detener · clic derecho para elegir la duración",
+        "Abre a ferramenta de captura de tela (tecla Print)": "Abre la herramienta de captura (tecla Imprimir)",
+        "Reorganiza as caixas automaticamente": "Reorganiza las cajas automáticamente",
+        "Notificações silenciadas": "Notificaciones silenciadas", "Silenciar notificações": "Silenciar notificaciones",
+        "{n} minutos": "{n} minutos", "Tempo de foco concluído": "Tiempo de enfoque terminado",
+        "{n} minutos — hora de uma pausa.": "{n} minutos — hora de un descanso.",
+        "agora": "ahora", "há {n} min": "hace {n} min", "há {n} h": "hace {n} h",
+        "Clique para atualizar · botão direito para trocar a cidade":
+            "Clic para actualizar · clic derecho para cambiar la ciudad",
+        "Carregando clima…": "Cargando el tiempo…", "Defina sua cidade": "Elige tu ciudad",
+        "Botão direito aqui para escolher": "Clic derecho aquí para elegir", "Clima indisponível": "Tiempo no disponible",
+        "Sem conexão — tento de novo em 20 min": "Sin conexión — reintento en 20 min",
+        "{city} · sensação {t}°": "{city} · sensación {t}°", "Máx {hi}° · mín {lo}°": "Máx {hi}° · mín {lo}°",
+        " · chuva {p}%": " · lluvia {p}%", "Umidade {h}% · vento {w} km/h": "Humedad {h}% · viento {w} km/h",
+        "Atualizado às {t} · clique para atualizar · botão direito para trocar a cidade":
+            "Actualizado a las {t} · clic para actualizar · clic derecho para cambiar la ciudad",
+        "Cidade do clima": "Ciudad del tiempo", "Digite a cidade e tecle Enter": "Escribe la ciudad y pulsa Intro",
+        "Nada encontrado.": "No se encontró nada.", "Sem conexão.": "Sin conexión.",
+        "Céu limpo": "Despejado", "Predomínio de sol": "Mayormente soleado", "Parcialmente nublado": "Parcialmente nublado",
+        "Nublado": "Nublado", "Neblina": "Niebla", "Neblina com geada": "Niebla helada", "Garoa fraca": "Llovizna débil",
+        "Garoa": "Llovizna", "Garoa forte": "Llovizna intensa", "Chuva fraca": "Lluvia débil", "Chuva": "Lluvia",
+        "Chuva forte": "Lluvia intensa", "Neve fraca": "Nevada débil", "Neve": "Nieve", "Neve forte": "Nevada intensa",
+        "Pancadas de chuva": "Chubascos", "Pancadas fortes": "Chubascos fuertes", "Trovoadas": "Tormentas",
+        "Trovoadas com granizo": "Tormentas con granizo",
+        "Nota": "Nota", "Cor": "Color", "Apagar nota": "Borrar nota", "Título": "Título",
+        "Apagar esta nota?": "¿Borrar esta nota?", "O conteúdo da nota será perdido.": "Se perderá el contenido de la nota.",
+        "Configurações": "Ajustes", "Ocultar este card": "Ocultar esta tarjeta", "Tamanho automático": "Tamaño automático",
+        "Atualizar agora": "Actualizar ahora", "Mercado": "Mercado", "Notícias": "Noticias", "Relógio": "Reloj",
+        "Fontes: Yahoo Finance · Banco Central · atraso de até 15 min":
+            "Fuentes: Yahoo Finance · Banco Central de Brasil · retraso de hasta 15 min",
+        "Editar ativos…": "Editar activos…", "sem conexão": "sin conexión", "indisponível": "no disponible",
+        "carregando…": "cargando…", "atualizado {t}": "actualizado {t}",
+        "Ativos do card de mercado": "Activos de la tarjeta de mercado", "Restaurar padrão": "Restaurar",
+        "Salvar": "Guardar",
+        "Um ativo por linha, no formato  SÍMBOLO = Nome.\nAções da B3: PETR4, VALE3, BBAS3… (o .SA é colocado "
+        "sozinho). Índices: ^BVSP, ^GSPC. Moedas: BRL=X (dólar), EURBRL=X. Cripto: BTC-BRL, ETH-BRL.":
+            "Un activo por línea, como  SÍMBOLO = Nombre.\nAcciones de Brasil: PETR4, VALE3… (el .SA se añade solo). "
+            "Otras: AAPL, SAN.MC, GGAL.BA. Índices: ^BVSP, ^IBEX, ^MERV. Monedas: EUR=X, ARS=X. "
+            "Cripto: BTC-USD, BTC-BRL.",
+        "Dólar": "Dólar", "Itaú": "Itaú",
+        "País": "País", "Fontes ({c})": "Fuentes ({c})",
+        "Nenhuma fonte escolhida — botão direito para escolher.": "Ninguna fuente elegida — clic derecho para elegir.",
+        "Não foi possível carregar as notícias agora.": "No se pudieron cargar las noticias ahora.",
+        "Clique para abrir no navegador": "Clic para abrir en el navegador",
+        "NOTÍCIAS · {c}": "NOTICIAS · {c}",
+        "Brasil": "Brasil", "Portugal": "Portugal", "Estados Unidos": "Estados Unidos", "Reino Unido": "Reino Unido",
+        "Espanha": "España", "Argentina": "Argentina", "Mundo": "Mundo",
+        "Estadão (política)": "Estadão (política)", "Valor (economia)": "Valor (economía)",
+        "InfoMoney (economia)": "InfoMoney (economía)", "Exame (economia)": "Exame (economía)",
+        "The Guardian (mundo)": "The Guardian (mundo)", "ONU News (português)": "Noticias ONU (portugués)",
+        "Buscar nas caixas": "Buscar en las cajas", "Nada nas caixas com esse nome.": "Nada en las cajas con ese nombre.",
+        "em {box}": "en {box}", "+ {n} nas caixas destacadas": "+ {n} en las cajas resaltadas",
+        "Bom dia": "Buenos días", "Boa tarde": "Buenas tardes", "Boa noite": "Buenas noches",
+        "semana {n}": "semana {n}", "{n} itens na área de trabalho": "{n} elementos en el escritorio",
+        "Reorganizar automaticamente": "Reorganizar automáticamente", "Recolher todas": "Contraer todas",
+        "Expandir todas": "Expandir todas", "Abrir pasta da Área de Trabalho": "Abrir carpeta del Escritorio",
+        "Estilo das caixas": "Estilo de las cajas", "Idioma": "Idioma", "Mostrar relógio": "Mostrar reloj",
+        "Mostrar segundos": "Mostrar segundos", "Mostrar gadgets abaixo do relógio": "Mostrar gadgets bajo el reloj",
+        "Mostrar mercado financeiro": "Mostrar mercado", "Mostrar notícias": "Mostrar noticias",
+        "Ocultar ícones nativos da área de trabalho": "Ocultar iconos nativos del escritorio",
+        "Mostrar arquivos ocultos": "Mostrar archivos ocultos", "Iniciar com o sistema": "Iniciar con el sistema",
+        "Sair": "Salir", "Automático (sistema)": "Automático (sistema)",
+    },
+}
+
+WEEKDAYS = {"pt": ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"],
+            "en": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "es": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]}
+WEEKDAYS_SHORT = {"pt": ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
+                  "en": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                  "es": ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]}
+MONTHS = {"pt": ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro",
+                 "outubro", "novembro", "dezembro"],
+          "en": ["January", "February", "March", "April", "May", "June", "July", "August", "September",
+                 "October", "November", "December"],
+          "es": ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
+                 "octubre", "noviembre", "diciembre"]}
+
+
+def _(text, **kw):
+    """Traduz um texto da interface (a chave é o português) e preenche os {campos}."""
+    out = TR.get(LANG, {}).get(text, text)
+    return out.format(**kw) if kw else out
+
+
+def system_language():
+    for var in ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"):
+        code = (os.environ.get(var) or "").split(":")[0][:2].lower()
+        if code:
+            return code if code in ("pt", "es") else "en"
+    return "en"
+
+
+def set_language(choice):
+    global LANG
+    LANG = system_language() if choice == "auto" else choice
+
+
+def long_date(dt):
+    """Quinta, 29 de outubro de 2026 / Thursday, October 29, 2026 / Jueves, 29 de octubre de 2026"""
+    wd, m = WEEKDAYS[LANG][dt.get_day_of_week() - 1], MONTHS[LANG][dt.get_month() - 1]
+    if LANG == "en":
+        return f"{wd}, {m} {dt.get_day_of_month()}, {dt.get_year()}"
+    return f"{wd}, {dt.get_day_of_month()} de {m} de {dt.get_year()}"
+
+
+
 def fold(text):
     """Minúsculas e sem acentos, para a busca: "Orçamento" combina com "orcamento"."""
     return "".join(c for c in unicodedata.normalize("NFD", text.casefold()) if unicodedata.category(c) != "Mn")
@@ -323,6 +557,7 @@ def load_config():
     cfg.setdefault("show_hidden", False)
     cfg.setdefault("show_gadgets", True)
     cfg.setdefault("theme", "padrao")
+    cfg.setdefault("language", "auto")
     cfg.setdefault("show_market", True)
     cfg.setdefault("show_news", True)
     cfg.setdefault("market_assets", DEFAULT_ASSETS)
@@ -388,6 +623,13 @@ def set_extensions(uuids, enabled):
             pass
 
 
+def apply_card_theme(widget, theme):
+    ctx = widget.get_style_context()
+    for t in THEMES:
+        ctx.remove_class(f"theme-{t}")
+    ctx.add_class(f"theme-{theme}")
+
+
 def setup_transparent(win):
     win.get_style_context().add_class("org-window")
     visual = win.get_screen().get_rgba_visual()
@@ -410,8 +652,8 @@ class WindowDragger:
 
     SNAP = 8
 
-    def __init__(self, widget, win, mode, cursor):
-        self.win, self.mode, self.start = win, mode, None
+    def __init__(self, widget, win, mode, cursor, min_size=(160, HEADER_H + 60)):
+        self.win, self.mode, self.start, self.min_size = win, mode, None, min_size
         widget.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.BUTTON_RELEASE_MASK
                           | Gdk.EventMask.BUTTON1_MOTION_MASK)
         widget.connect("motion-notify-event", self.on_motion)
@@ -443,7 +685,7 @@ class WindowDragger:
             ny = min(max(snap(y + dy), wa.y), wa.y + wa.height - HEADER_H)
             self.win.move(nx, ny)
         else:
-            self.win.resize(max(160, snap(w + dx)), max(HEADER_H + 60, snap(h + dy)))
+            self.win.resize(max(self.min_size[0], snap(w + dx)), max(self.min_size[1], snap(h + dy)))
         return True
 
     def on_release(self, _w, _ev):
@@ -518,7 +760,7 @@ class DesktopItem:
             else:
                 Gio.AppInfo.launch_default_for_uri(self.gfile.get_uri(), None)
         except GLib.Error as e:
-            show_error(f"Não foi possível abrir “{self.display_name}”.", e.message)
+            show_error(_("Não foi possível abrir “{name}”.", name=self.display_name), e.message)
 
 
 def show_error(title, detail=""):
@@ -552,7 +794,7 @@ class Fence(Gtk.Window):
     """Uma caixa (estilo Fences/360) com os itens de uma categoria."""
 
     def __init__(self, app, key):
-        super().__init__(title=f"{APP_NAME} — {CAT_BY_KEY[key][1]}")
+        super().__init__(title=f"{APP_NAME} — {_(CAT_BY_KEY[key][1])}")
         self.app = app
         self.key = key
         _k, title, color, _e = CAT_BY_KEY[key]
@@ -581,6 +823,7 @@ class Fence(Gtk.Window):
         header.get_style_context().add_class(f"cat-{key}")
         self.toggle_lbl = Gtk.Label()
         self.toggle_lbl.get_style_context().add_class("fence-toggle")
+        title = _(title)
         title_lbl = Gtk.Label(label=title, xalign=0)
         title_lbl.get_style_context().add_class("fence-title")
         self.title_lbl, self.title = title_lbl, title
@@ -736,27 +979,27 @@ class Fence(Gtk.Window):
             mi.connect("activate", lambda _m: cb())
             menu.append(mi)
 
-        add("Abrir", item.open)
-        add("Mostrar no Gerenciador de Arquivos", lambda: show_in_files(item.gfile))
-        add("Renomear…", lambda: self.app.rename_item(item))
-        add("Copiar caminho", lambda: Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).set_text(item.path, -1))
+        add(_("Abrir"), item.open)
+        add(_("Mostrar no Gerenciador de Arquivos"), lambda: show_in_files(item.gfile))
+        add(_("Renomear…"), lambda: self.app.rename_item(item))
+        add(_("Copiar caminho"), lambda: Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).set_text(item.path, -1))
 
         sub = Gtk.Menu()
         for key, title, _c, _e in CATEGORIES:
             if key != item.category:
-                mi = Gtk.MenuItem(label=title)
+                mi = Gtk.MenuItem(label=_(title))
                 mi.connect("activate", lambda _m, k=key: self.app.assign_box(item.name, k))
                 sub.append(mi)
         if item.name in self.app.cfg["overrides"]:
             sub.append(Gtk.SeparatorMenuItem())
-            mi = Gtk.MenuItem(label="Voltar para a caixa automática")
+            mi = Gtk.MenuItem(label=_("Voltar para a caixa automática"))
             mi.connect("activate", lambda _m: self.app.assign_box(item.name, None))
             sub.append(mi)
-        mover = Gtk.MenuItem(label="Mover para a caixa")
+        mover = Gtk.MenuItem(label=_("Mover para a caixa"))
         mover.set_submenu(sub)
         menu.append(mover)
         menu.append(Gtk.SeparatorMenuItem())
-        add("Mover para a lixeira", lambda: self.app.trash_item(item))
+        add(_("Mover para a lixeira"), lambda: self.app.trash_item(item))
         menu.show_all()
         menu.attach_to_widget(self, None)
         return menu
@@ -771,12 +1014,12 @@ class Fence(Gtk.Window):
                 continue
             target = dest_dir.get_child(src.get_basename())
             if target.query_exists(None):
-                show_error(f"Já existe “{src.get_basename()}” na área de trabalho.")
+                show_error(_("Já existe “{name}” na área de trabalho.", name=src.get_basename()))
                 continue
             try:
                 src.move(target, Gio.FileCopyFlags.NONE, None, None, None)
             except GLib.Error as e:
-                show_error(f"Não foi possível mover “{src.get_basename()}”.", e.message)
+                show_error(_("Não foi possível mover “{name}”.", name=src.get_basename()), e.message)
         Gtk.drag_finish(ctx, True, False, time)
 
 
@@ -797,7 +1040,7 @@ def spawn(*argv):
     try:
         subprocess.Popen(argv, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except OSError as e:
-        show_error(f"Não foi possível abrir “{argv[0]}”.", str(e))
+        show_error(_("Não foi possível abrir “{name}”.", name=argv[0]), str(e))
 
 
 def notify(title, body, sound="complete"):
@@ -861,13 +1104,13 @@ class GadgetPanel(Gtk.Box):
         # --- clima ---
         self.weather = WeatherWidget(app)
         self.pack_start(self.weather, False, False, 0)
-        self.pack_start(self.section("SISTEMA"), False, False, 0)
+        self.pack_start(self.section(_("SISTEMA")), False, False, 0)
 
         # --- uso do sistema ---
         grid = Gtk.Grid(column_spacing=10, row_spacing=5)
         self.bars = {}
         for row, (key, label) in enumerate([("cpu", "CPU"), ("mem", "Memória"), ("disk", "Disco")]):
-            lbl = Gtk.Label(label=label, xalign=0)
+            lbl = Gtk.Label(label=_(label), xalign=0)
             lbl.get_style_context().add_class("stat-label")
             bar = Gtk.ProgressBar(hexpand=True, valign=Gtk.Align.CENTER)
             val = Gtk.Label(xalign=1, width_chars=14)
@@ -879,31 +1122,31 @@ class GadgetPanel(Gtk.Box):
         self.pack_start(grid, False, False, 0)
 
         # --- atalhos ---
-        self.pack_start(self.section("ATALHOS"), False, False, 0)
+        self.pack_start(self.section(_("ATALHOS")), False, False, 0)
         buttons = Gtk.Grid(column_homogeneous=True, row_spacing=2, column_spacing=2)
         self.btn = {}
         defs = [
-            ("organize", "view-grid-symbolic", "Reorganizar", self.app.auto_layout),
-            ("shot", "camera-photo-symbolic", "Captura", self.screenshot),
-            ("calc", "accessories-calculator-symbolic", "Calculadora", lambda: spawn("gnome-calculator")),
-            ("term", "utilities-terminal-symbolic", "Terminal", lambda: spawn("gnome-terminal")),
-            ("down", "folder-download-symbolic", "Downloads", self.open_downloads),
-            ("trash", "user-trash-symbolic", "Lixeira", lambda: spawn("nautilus", "trash:///")),
-            ("lock", "system-lock-screen-symbolic", "Bloquear", self.lock_screen),
-            ("dnd", "notifications-disabled-symbolic", "Não perturbe", self.toggle_dnd),
-            ("timer", "alarm-symbolic", "Foco", self.toggle_timer),
-            ("collapse", "go-up-symbolic", "Recolher", self.toggle_collapse_all),
-            ("monitor", "utilities-system-monitor-symbolic", "Monitor", lambda: spawn("gnome-system-monitor")),
-            ("note", "document-new-symbolic", "Nova nota", lambda: self.app.new_note()),
+            ("organize", "view-grid-symbolic", _("Reorganizar"), self.app.auto_layout),
+            ("shot", "camera-photo-symbolic", _("Captura"), self.screenshot),
+            ("calc", "accessories-calculator-symbolic", _("Calculadora"), lambda: spawn("gnome-calculator")),
+            ("term", "utilities-terminal-symbolic", _("Terminal"), lambda: spawn("gnome-terminal")),
+            ("down", "folder-download-symbolic", _("Downloads"), self.open_downloads),
+            ("trash", "user-trash-symbolic", _("Lixeira"), lambda: spawn("nautilus", "trash:///")),
+            ("lock", "system-lock-screen-symbolic", _("Bloquear"), self.lock_screen),
+            ("dnd", "notifications-disabled-symbolic", _("Não perturbe"), self.toggle_dnd),
+            ("timer", "alarm-symbolic", _("Foco"), self.toggle_timer),
+            ("collapse", "go-up-symbolic", _("Recolher"), self.toggle_collapse_all),
+            ("monitor", "utilities-system-monitor-symbolic", _("Monitor"), lambda: spawn("gnome-system-monitor")),
+            ("note", "document-new-symbolic", _("Nova nota"), lambda: self.app.new_note()),
         ]
         for i, (key, icon, label, cb) in enumerate(defs):
             b = self.make_button(icon, label, cb)
             self.btn[key] = b
             buttons.attach(b, i % 4, i // 4, 1, 1)
         self.btn["timer"].connect("button-press-event", self.on_timer_press)
-        self.btn["timer"].set_tooltip_text("Clique para iniciar/parar · botão direito escolhe a duração")
-        self.btn["shot"].set_tooltip_text("Abre a ferramenta de captura de tela (tecla Print)")
-        self.btn["organize"].set_tooltip_text("Reorganiza as caixas automaticamente")
+        self.btn["timer"].set_tooltip_text(_("Clique para iniciar/parar · botão direito escolhe a duração"))
+        self.btn["shot"].set_tooltip_text(_("Abre a ferramenta de captura de tela (tecla Print)"))
+        self.btn["organize"].set_tooltip_text(_("Reorganiza as caixas automaticamente"))
         self.pack_start(buttons, False, False, 0)
 
 
@@ -952,15 +1195,15 @@ class GadgetPanel(Gtk.Box):
         frac, used, total = self.stats.mem()
         self.set_bar("mem", frac, f"{used:.1f} / {total:.0f} GB")
         frac, free = self.stats.disk()
-        self.set_bar("disk", frac, f"{free:.0f} GB livres")
+        self.set_bar("disk", frac, _("{n} GB livres", n=f"{free:.0f}"))
         try:
             n = Gio.File.new_for_uri("trash:///").query_info(
                 "trash::item-count", Gio.FileQueryInfoFlags.NONE, None).get_attribute_uint32("trash::item-count")
-            self.btn["trash"].lbl.set_text(f"Lixeira ({n})" if n else "Lixeira")
+            self.btn["trash"].lbl.set_text(_("Lixeira ({n})", n=n) if n else _("Lixeira"))
         except GLib.Error:
             pass
         collapsed = bool(self.app.fences) and all(f.collapsed for f in self.app.fences.values())
-        self.btn["collapse"].lbl.set_text("Expandir" if collapsed else "Recolher")
+        self.btn["collapse"].lbl.set_text(_("Expandir") if collapsed else _("Recolher"))
         self.btn["collapse"].icon.set_from_icon_name("go-down-symbolic" if collapsed else "go-up-symbolic",
                                                      Gtk.IconSize.LARGE_TOOLBAR)
         return True
@@ -989,7 +1232,7 @@ class GadgetPanel(Gtk.Box):
         on = not self.dnd_settings.get_boolean("show-banners")
         ctx = self.btn["dnd"].get_style_context()
         (ctx.add_class if on else ctx.remove_class)("on")
-        self.btn["dnd"].set_tooltip_text("Notificações silenciadas" if on else "Silenciar notificações")
+        self.btn["dnd"].set_tooltip_text(_("Notificações silenciadas") if on else _("Silenciar notificações"))
 
     def toggle_collapse_all(self):
         fences = self.app.fences.values()
@@ -1002,7 +1245,7 @@ class GadgetPanel(Gtk.Box):
             return False
         menu = Gtk.Menu()
         for m in (5, 15, 25, 45, 60):
-            mi = Gtk.CheckMenuItem(label=f"{m} minutos")
+            mi = Gtk.CheckMenuItem(label=_("{n} minutos", n=m))
             mi.set_draw_as_radio(True)
             mi.set_active(m == self.app.cfg["timer_min"])
             mi.connect("activate", lambda _m, m=m: self.start_timer(m))
@@ -1031,12 +1274,12 @@ class GadgetPanel(Gtk.Box):
     def stop_timer(self, done=False):
         self.timer_end = None
         self.btn["timer"].get_style_context().remove_class("on")
-        self.btn["timer"].lbl.set_text("Foco")
+        self.btn["timer"].lbl.set_text(_("Foco"))
         if getattr(self, "_timer_id", 0):
             GLib.source_remove(self._timer_id)
             self._timer_id = 0
         if done:
-            notify("Tempo de foco concluído", f"{self.app.cfg['timer_min']} minutos — hora de uma pausa.",
+            notify(_("Tempo de foco concluído"), _("{n} minutos — hora de uma pausa.", n=self.app.cfg["timer_min"]),
                    "alarm-clock-elapsed")
 
     def timer_tick(self):
@@ -1076,18 +1319,19 @@ def run_async(work, done):
 
 
 def fmt_num(v, dec=2):
-    """Número no formato brasileiro: 169.186,42"""
-    return f"{v:,.{dec}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    """Número no formato do idioma: 169.186,42 (pt/es) ou 169,186.42 (en)."""
+    s = f"{v:,.{dec}f}"
+    return s if LANG == "en" else s.replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 def ago(dt):
     mins = int((datetime.now(timezone.utc) - dt).total_seconds() // 60)
     if mins < 1:
-        return "agora"
+        return _("agora")
     if mins < 60:
-        return f"há {mins} min"
+        return _("há {n} min", n=mins)
     if mins < 24 * 60:
-        return f"há {mins // 60} h"
+        return _("há {n} h", n=mins // 60)
     return dt.astimezone().strftime("%d/%m %H:%M")
 
 
@@ -1099,7 +1343,7 @@ class WeatherWidget(Gtk.EventBox):
     def __init__(self, app):
         super().__init__()
         self.app = app
-        self.set_tooltip_text("Clique para atualizar · botão direito para trocar a cidade")
+        self.set_tooltip_text(_("Clique para atualizar · botão direito para trocar a cidade"))
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         top = Gtk.Box(spacing=12)
         self.icon = Gtk.Image.new_from_icon_name("weather-few-clouds-symbolic", Gtk.IconSize.DIALOG)
@@ -1108,7 +1352,7 @@ class WeatherWidget(Gtk.EventBox):
         self.temp = Gtk.Label(label="--°")
         self.temp.get_style_context().add_class("wx-temp")
         info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, spacing=1)
-        self.desc = Gtk.Label(label="Carregando clima…", xalign=0)
+        self.desc = Gtk.Label(label=_("Carregando clima…"), xalign=0)
         self.desc.get_style_context().add_class("wx-desc")
         self.line1 = Gtk.Label(xalign=0)
         self.line2 = Gtk.Label(xalign=0)
@@ -1145,8 +1389,8 @@ class WeatherWidget(Gtk.EventBox):
             return
         city = self.app.cfg["weather_city"]
         if not city:
-            self.desc.set_text("Defina sua cidade")
-            self.line1.set_text("Botão direito aqui para escolher")
+            self.desc.set_text(_("Defina sua cidade"))
+            self.line1.set_text(_("Botão direito aqui para escolher"))
             return
         self.fetching = True
         url = ("https://api.open-meteo.com/v1/forecast?" + urllib.parse.urlencode({
@@ -1168,28 +1412,30 @@ class WeatherWidget(Gtk.EventBox):
         self.fetching = False
         city = self.app.cfg["weather_city"]
         if err or not data:
-            self.desc.set_text("Clima indisponível")
-            self.line1.set_text("Sem conexão — tento de novo em 20 min")
+            self.desc.set_text(_("Clima indisponível"))
+            self.line1.set_text(_("Sem conexão — tento de novo em 20 min"))
             return False
         cur, daily = data["current"], data["daily"]
         desc, day_icon, night_icon = WEATHER_CODES.get(cur["weather_code"], ("—", "weather-overcast-symbolic", None))
         self.icon.set_from_icon_name(day_icon if cur["is_day"] else (night_icon or day_icon), Gtk.IconSize.DIALOG)
         self.icon.set_pixel_size(52)
         self.temp.set_text(f"{round(cur['temperature_2m'])}°")
-        self.desc.set_text(desc)
+        self.desc.set_text(_(desc))
         rain = daily["precipitation_probability_max"][0]
-        self.line1.set_text(f"{city['name']} · sensação {round(cur['apparent_temperature'])}°")
-        self.line2.set_text(f"Máx {round(daily['temperature_2m_max'][0])}° · mín {round(daily['temperature_2m_min'][0])}°"
-                            + (f" · chuva {rain}%" if rain is not None else ""))
-        self.line3.set_text(f"Umidade {cur['relative_humidity_2m']}% · vento {round(cur['wind_speed_10m'])} km/h")
-        self.set_tooltip_text(f"Atualizado às {time.strftime('%H:%M')} · clique para atualizar"
-                              " · botão direito para trocar a cidade")
+        self.line1.set_text(_("{city} · sensação {t}°", city=city["name"], t=round(cur["apparent_temperature"])))
+        self.line2.set_text(_("Máx {hi}° · mín {lo}°", hi=round(daily["temperature_2m_max"][0]),
+                              lo=round(daily["temperature_2m_min"][0]))
+                            + (_(" · chuva {p}%", p=rain) if rain is not None else ""))
+        self.line3.set_text(_("Umidade {h}% · vento {w} km/h", h=cur["relative_humidity_2m"],
+                              w=round(cur["wind_speed_10m"])))
+        self.set_tooltip_text(_("Atualizado às {t} · clique para atualizar · botão direito para trocar a cidade",
+                                t=time.strftime("%H:%M")))
         for child in self.days.get_children():
             child.destroy()
         for i in range(1, min(5, len(daily["time"]))):
             d = GLib.DateTime.new_local(*map(int, daily["time"][i].split("-")), 12, 0, 0)
             col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-            name = Gtk.Label(label=d.format("%a").rstrip(".").capitalize())
+            name = Gtk.Label(label=WEEKDAYS_SHORT[LANG][d.get_day_of_week() - 1])
             name.get_style_context().add_class("wx-day")
             ic = Gtk.Image.new_from_icon_name(
                 WEATHER_CODES.get(daily["weather_code"][i], (None, "weather-overcast-symbolic"))[1],
@@ -1204,7 +1450,7 @@ class WeatherWidget(Gtk.EventBox):
             temps.pack_start(mn, False, False, 0)
             for w in (name, ic, temps):
                 col.pack_start(w, False, False, 0)
-            col.set_tooltip_text(WEATHER_CODES.get(daily["weather_code"][i], ("",))[0])
+            col.set_tooltip_text(_(WEATHER_CODES.get(daily["weather_code"][i], ("",))[0]))
             self.days.pack_start(col, True, True, 0)
         self.days.show_all()
         return False
@@ -1214,14 +1460,14 @@ class CityDialog(Gtk.Dialog):
     """Busca a cidade no geocoding do Open-Meteo."""
 
     def __init__(self, app, on_done):
-        super().__init__(title="Cidade do clima", modal=True)
+        super().__init__(title=_("Cidade do clima"), modal=True)
         self.app, self.on_done = app, on_done
         self.set_default_size(380, 320)
-        self.add_button("Cancelar", Gtk.ResponseType.CANCEL)
+        self.add_button(_("Cancelar"), Gtk.ResponseType.CANCEL)
         area = self.get_content_area()
         area.set_border_width(12)
         area.set_spacing(8)
-        self.entry = Gtk.SearchEntry(placeholder_text="Digite a cidade e tecle Enter")
+        self.entry = Gtk.SearchEntry(placeholder_text=_("Digite a cidade e tecle Enter"))
         self.entry.connect("activate", self.search)
         self.list = Gtk.ListBox()
         self.list.connect("row-activated", self.pick)
@@ -1252,7 +1498,7 @@ class CityDialog(Gtk.Dialog):
         for row in self.list.get_children():
             row.destroy()
         if not results:
-            self.list.add(Gtk.Label(label="Nada encontrado." if results is not None else "Sem conexão.", margin=8))
+            self.list.add(Gtk.Label(label=_("Nada encontrado.") if results is not None else _("Sem conexão."), margin=8))
         for r in results or []:
             row = Gtk.ListBoxRow()
             row.city = {"name": r["name"], "admin1": r.get("admin1", ""), "lat": r["latitude"], "lon": r["longitude"]}
@@ -1274,7 +1520,7 @@ class StickyNote(Gtk.Window):
     """Nota adesiva colorida, fixa na área de trabalho."""
 
     def __init__(self, app, data):
-        super().__init__(title=f"{APP_NAME} — Nota")
+        super().__init__(title=f"{APP_NAME} — {_('Nota')}")
         self.app, self.data = app, data
         setup_transparent(self)
         self.frame = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -1291,9 +1537,9 @@ class StickyNote(Gtk.Window):
         self.date_lbl = Gtk.Label(label=data.get("created", ""), xalign=0)
         self.date_lbl.get_style_context().add_class("sticky-date")
         head.pack_start(self.date_lbl, True, True, 0)
-        for icon, tip, cb in (("list-add-symbolic", "Nova nota", lambda: self.app.new_note(near=self)),
-                              ("applications-graphics-symbolic", "Cor", self.color_menu),
-                              ("window-close-symbolic", "Apagar nota", self.delete)):
+        for icon, tip, cb in (("list-add-symbolic", _("Nova nota"), lambda: self.app.new_note(near=self)),
+                              ("applications-graphics-symbolic", _("Cor"), self.color_menu),
+                              ("window-close-symbolic", _("Apagar nota"), self.delete)):
             b = Gtk.Button(relief=Gtk.ReliefStyle.NONE, tooltip_text=tip)
             b.add(Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.MENU))
             b.get_style_context().add_class("sticky-btn")
@@ -1304,7 +1550,7 @@ class StickyNote(Gtk.Window):
         self.mover = WindowDragger(head_ev, self, "move", "grab")
         self.frame.pack_start(head_ev, False, False, 0)
 
-        self.title = Gtk.Entry(text=data.get("title", ""), placeholder_text="Título", has_frame=False)
+        self.title = Gtk.Entry(text=data.get("title", ""), placeholder_text=_("Título"), has_frame=False)
         self.title.get_style_context().add_class("sticky-title")
         self.title.connect("changed", lambda e: self.store("title", e.get_text()))
         self.frame.pack_start(self.title, False, False, 0)
@@ -1347,7 +1593,7 @@ class StickyNote(Gtk.Window):
     def color_menu(self):
         menu = Gtk.Menu()
         for key, name in NOTE_COLOR_NAMES.items():
-            mi = Gtk.MenuItem(label=name)
+            mi = Gtk.MenuItem(label=_(name))
             mi.connect("activate", lambda _m, k=key: (self.store("color", k), self.apply_color()))
             menu.append(mi)
         menu.show_all()
@@ -1370,8 +1616,8 @@ class StickyNote(Gtk.Window):
     def delete(self):
         if self.data.get("text", "").strip() or self.data.get("title", "").strip():
             dlg = Gtk.MessageDialog(message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO,
-                                    text="Apagar esta nota?")
-            dlg.format_secondary_text("O conteúdo da nota será perdido.")
+                                    text=_("Apagar esta nota?"))
+            dlg.format_secondary_text(_("O conteúdo da nota será perdido."))
             ok = dlg.run() == Gtk.ResponseType.YES
             dlg.destroy()
             if not ok:
@@ -1385,6 +1631,7 @@ class InfoCard(Gtk.Window):
     WIDTH = 380
 
     def __init__(self, app, key, title):
+        title = _(title)
         super().__init__(title=f"{APP_NAME} — {title}")
         self.app, self.key = app, key
         setup_transparent(self)
@@ -1400,16 +1647,45 @@ class InfoCard(Gtk.Window):
         head.pack_start(t, True, True, 0)
         head.pack_end(self.meta, False, False, 0)
         self.box.pack_start(head, False, False, 0)
+        # Conteúdo rolável: se o card for redimensionado para menor que o conteúdo, rola.
+        self.scroll = Gtk.ScrolledWindow(propagate_natural_height=True, vexpand=True)
+        self.scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.scroll.add(self.content)
+        self.box.pack_start(self.scroll, True, True, 0)
+        grip_ev = Gtk.EventBox(halign=Gtk.Align.END)
+        grip = Gtk.Label(label="◢")
+        grip.get_style_context().add_class("grip")
+        grip_ev.add(grip)
+        grip_ev.connect("button-press-event", lambda _w, e: e.button == 1 and self.resizer.begin(e) or True)
+        self.resizer = WindowDragger(grip_ev, self, "resize", "se-resize", min_size=(300, 160))
+        self.box.pack_end(grip_ev, False, False, 0)
         ev.add(self.box)
         ev.connect("button-press-event", self.on_press)
         self.mover = WindowDragger(ev, self, "move", "grab")
         self.add(ev)
         ev.show_all()
+        apply_card_theme(self.box, app.cfg["theme"])
         g = self.app.cfg["cards"].get(key)
         if g:
             self.move(g["x"], g["y"])
+        self.fit()
         self.connect("configure-event", self.on_configure)
         self.loading = False
+
+    def geom(self):
+        return self.app.cfg["cards"].setdefault(self.key, {})
+
+    def fit(self):
+        """Tamanho escolhido pelo usuário, ou o do conteúdo se ele nunca redimensionou."""
+        g = self.geom()
+        # Rolagem só com tamanho escolhido; no automático o card cresce até caber todo o conteúdo.
+        self.scroll.set_policy(Gtk.PolicyType.NEVER,
+                               Gtk.PolicyType.AUTOMATIC if "w" in g else Gtk.PolicyType.NEVER)
+        if "w" in g:
+            self.resize(g["w"], g["h"])
+        else:
+            self.resize(1, 1)
 
     def on_press(self, _w, ev):
         if ev.button == 1 and ev.type == Gdk.EventType.BUTTON_PRESS:
@@ -1417,7 +1693,7 @@ class InfoCard(Gtk.Window):
         elif ev.button == 3:
             menu = self.card_menu()
             menu.append(Gtk.SeparatorMenuItem())
-            general = Gtk.MenuItem(label="Configurações")  # menu geral num submenu: o do card fica curto
+            general = Gtk.MenuItem(label=_("Configurações"))  # menu geral num submenu: o do card fica curto
             general.set_submenu(self.app.build_menu())
             menu.append(general)
             menu.show_all()
@@ -1428,14 +1704,25 @@ class InfoCard(Gtk.Window):
 
     def card_menu(self):
         menu = Gtk.Menu()
-        hide = Gtk.MenuItem(label="Ocultar este card")
+        hide = Gtk.MenuItem(label=_("Ocultar este card"))
         hide.connect("activate", lambda _m: self.hide_card())
         menu.append(hide)
+        if "w" in self.geom():
+            auto = Gtk.MenuItem(label=_("Tamanho automático"))
+            auto.connect("activate", lambda _m: self.reset_size())
+            menu.append(auto)
         menu.append(Gtk.SeparatorMenuItem())
-        mi = Gtk.MenuItem(label="Atualizar agora")
+        mi = Gtk.MenuItem(label=_("Atualizar agora"))
         mi.connect("activate", lambda _m: self.refresh())
         menu.append(mi)
         return menu
+
+    def reset_size(self):
+        g = self.geom()
+        g.pop("w", None)
+        g.pop("h", None)
+        self.app.schedule_save()
+        self.fit()
 
     def hide_card(self):
         # Volta pelo botão direito em qualquer caixa → Mostrar mercado financeiro / Mostrar notícias.
@@ -1443,7 +1730,13 @@ class InfoCard(Gtk.Window):
                       and False)
 
     def on_configure(self, _w, ev):
-        self.app.cfg["cards"][self.key] = {"x": ev.x, "y": ev.y}
+        g = self.geom()
+        g.update(x=ev.x, y=ev.y)
+        if self.mover.start or self.resizer.start:
+            self.app.stack_news = False  # o usuário posicionou à mão: respeita
+        if self.resizer.start:  # só grava o tamanho quando o usuário redimensiona
+            g.update(w=ev.width, h=ev.height)
+            self.scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.app.schedule_save()
         return False
 
@@ -1484,24 +1777,24 @@ class MarketCard(InfoCard):
         super().__init__(app, "market", "Mercado")
         self.grid = Gtk.Grid(column_spacing=10, row_spacing=7)
         self.grid.set_margin_top(6)
-        self.box.pack_start(self.grid, False, False, 0)
+        self.content.pack_start(self.grid, False, False, 0)
         sep = Gtk.Box()
         sep.get_style_context().add_class("gadget-sep")
-        self.box.pack_start(sep, False, False, 0)
+        self.content.pack_start(sep, False, False, 0)
         self.ind = Gtk.Box(homogeneous=True)
-        self.box.pack_start(self.ind, False, False, 0)
-        src = Gtk.Label(label="Fontes: Yahoo Finance · Banco Central · atraso de até 15 min", xalign=0)
+        self.content.pack_start(self.ind, False, False, 0)
+        src = Gtk.Label(label=_("Fontes: Yahoo Finance · Banco Central · atraso de até 15 min"), xalign=0)
         src.get_style_context().add_class("card-meta")
         src.set_margin_top(6)
-        self.box.pack_start(src, False, False, 0)
+        self.content.pack_start(src, False, False, 0)
         self.box.show_all()
-        self.meta.set_text("carregando…")
+        self.meta.set_text(_("carregando…"))
         self.refresh()
         GLib.timeout_add_seconds(self.REFRESH_S, lambda: self.refresh() or True)
 
     def card_menu(self):
         menu = super().card_menu()
-        mi = Gtk.MenuItem(label="Editar ativos…")
+        mi = Gtk.MenuItem(label=_("Editar ativos…"))
         mi.connect("activate", lambda _m: self.edit_assets())
         menu.append(mi)
         return menu
@@ -1547,14 +1840,14 @@ class MarketCard(InfoCard):
     def show_data(self, res, err):
         self.loading = False
         if err or not res:
-            self.meta.set_text("sem conexão")
+            self.meta.set_text(_("sem conexão"))
             return
         quotes, inds = res
         for c in self.grid.get_children():
             c.destroy()
         for row, (name, sym, kind, price, prev, closes) in enumerate(quotes):
             names = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            n = Gtk.Label(label=name, xalign=0)
+            n = Gtk.Label(label=_(name), xalign=0)
             n.get_style_context().add_class("mk-name")
             sub = Gtk.Label(label=sym.replace(".SA", "").replace("=X", ""), xalign=0)
             sub.get_style_context().add_class("mk-sub")
@@ -1563,7 +1856,7 @@ class MarketCard(InfoCard):
             names.set_hexpand(True)
             self.grid.attach(names, 0, row, 1, 1)
             if price is None:
-                na = Gtk.Label(label="indisponível", xalign=1)
+                na = Gtk.Label(label=_("indisponível"), xalign=1)
                 na.get_style_context().add_class("mk-sub")
                 self.grid.attach(na, 1, row, 3, 1)
                 continue
@@ -1583,7 +1876,7 @@ class MarketCard(InfoCard):
             c.destroy()
         for name, v in inds:
             col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            a = Gtk.Label(label=name)
+            a = Gtk.Label(label=_(name))
             a.get_style_context().add_class("mk-ind")
             b = Gtk.Label(label=f"{fmt_num(v)}%" if v is not None else "—")
             b.get_style_context().add_class("mk-ind-val")
@@ -1591,20 +1884,20 @@ class MarketCard(InfoCard):
             col.pack_start(b, False, False, 0)
             self.ind.pack_start(col, True, True, 0)
         self.box.show_all()
-        self.meta.set_text(f"atualizado {time.strftime('%H:%M')}")
-        self.resize(1, 1)
+        self.meta.set_text(_("atualizado {t}", t=time.strftime("%H:%M")))
+        self.fit()
+        GLib.timeout_add(300, lambda: self.app.restack_cards() and False)
 
     def edit_assets(self):
-        dlg = Gtk.Dialog(title="Ativos do card de mercado", modal=True)
-        dlg.add_buttons("Restaurar padrão", 1, "Cancelar", Gtk.ResponseType.CANCEL, "Salvar", Gtk.ResponseType.OK)
+        dlg = Gtk.Dialog(title=_("Ativos do card de mercado"), modal=True)
+        dlg.add_buttons(_("Restaurar padrão"), 1, _("Cancelar"), Gtk.ResponseType.CANCEL, _("Salvar"), Gtk.ResponseType.OK)
         dlg.set_default_size(460, 420)
         area = dlg.get_content_area()
         area.set_border_width(12)
         area.set_spacing(8)
-        help_ = Gtk.Label(xalign=0, wrap=True, label=(
-            "Um ativo por linha, no formato  SÍMBOLO = Nome.\n"
-            "Ações da B3: PETR4, VALE3, BBAS3… (o .SA é colocado sozinho). "
-            "Índices: ^BVSP, ^GSPC. Moedas: BRL=X (dólar), EURBRL=X. Cripto: BTC-BRL, ETH-BRL."))
+        help_ = Gtk.Label(xalign=0, wrap=True, label=_(
+            "Um ativo por linha, no formato  SÍMBOLO = Nome.\nAções da B3: PETR4, VALE3, BBAS3… (o .SA é colocado "
+            "sozinho). Índices: ^BVSP, ^GSPC. Moedas: BRL=X (dólar), EURBRL=X. Cripto: BTC-BRL, ETH-BRL."))
         area.pack_start(help_, False, False, 0)
         view = Gtk.TextView(monospace=True)
         view.get_buffer().set_text("\n".join(f"{s} = {n}" for s, n, _k in self.app.cfg["market_assets"]))
@@ -1640,7 +1933,7 @@ class NewsCard(InfoCard):
     """Manchetes dos feeds RSS escolhidos, mais recentes primeiro."""
 
     REFRESH_S = 15 * 60
-    MAX_ITEMS = 7
+    MAX_ITEMS = 12  # o card mostra o que couber; aumentando a altura aparecem mais
     PER_SOURCE = 3  # para uma fonte muito ativa não ocupar o card inteiro
     MAX_AGE_H = 72  # feed parado não deve mostrar notícia velha como se fosse nova
     # Chamadas de vídeo/programação que alguns portais misturam às notícias
@@ -1651,9 +1944,9 @@ class NewsCard(InfoCard):
         self.update_title()
         self.list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1)
         self.list.set_margin_top(4)
-        self.box.pack_start(self.list, False, False, 0)
+        self.content.pack_start(self.list, False, False, 0)
         self.box.show_all()
-        self.meta.set_text("carregando…")
+        self.meta.set_text(_("carregando…"))
         self.refresh()
         GLib.timeout_add_seconds(self.REFRESH_S, lambda: self.refresh() or True)
 
@@ -1670,26 +1963,26 @@ class NewsCard(InfoCard):
         return [k for k in chosen if k in NEWS_COUNTRIES[c][1]]
 
     def update_title(self):
-        self.title_lbl.set_text(f"NOTÍCIAS · {NEWS_COUNTRIES[self.country()][0].upper()}")
+        self.title_lbl.set_text(_("NOTÍCIAS · {c}", c=_(NEWS_COUNTRIES[self.country()][0]).upper()))
 
     def card_menu(self):
         menu = super().card_menu()
-        country_item = Gtk.MenuItem(label="País")
+        country_item = Gtk.MenuItem(label=_("País"))
         sub = Gtk.Menu()
         group = None
         for code, (label, _feeds) in NEWS_COUNTRIES.items():
-            mi = Gtk.RadioMenuItem.new_with_label_from_widget(group, label)
+            mi = Gtk.RadioMenuItem.new_with_label_from_widget(group, _(label))
             group = group or mi
             mi.set_active(code == self.country())
             mi.connect("toggled", lambda m, c=code: m.get_active() and self.set_country(c))
             sub.append(mi)
         country_item.set_submenu(sub)
         menu.append(country_item)
-        sources_item = Gtk.MenuItem(label=f"Fontes ({NEWS_COUNTRIES[self.country()][0]})")
+        sources_item = Gtk.MenuItem(label=_("Fontes ({c})", c=_(NEWS_COUNTRIES[self.country()][0])))
         sub = Gtk.Menu()
         active = self.sources()
         for key, (name, _url, _on) in NEWS_COUNTRIES[self.country()][1].items():
-            mi = Gtk.CheckMenuItem(label=name)
+            mi = Gtk.CheckMenuItem(label=_(name))
             mi.set_active(key in active)
             mi.connect("toggled", lambda m, k=key: self.toggle_source(k, m.get_active()))
             sub.append(mi)
@@ -1780,10 +2073,10 @@ class NewsCard(InfoCard):
             c.destroy()
         if not self.sources():
             self.meta.set_text("")
-            self.add_info("Nenhuma fonte escolhida — botão direito para escolher.")
+            self.add_info(_("Nenhuma fonte escolhida — botão direito para escolher."))
         elif err or not items:
-            self.meta.set_text("sem conexão")
-            self.add_info("Não foi possível carregar as notícias agora.")
+            self.meta.set_text(_("sem conexão"))
+            self.add_info(_("Não foi possível carregar as notícias agora."))
         else:
             for dt, src, title, link in items:
                 ev = Gtk.EventBox()
@@ -1803,14 +2096,14 @@ class NewsCard(InfoCard):
                 row.pack_start(t, False, False, 0)
                 row.pack_start(meta, False, False, 0)
                 ev.add(row)
-                ev.set_tooltip_text(f"{title}\n\nClique para abrir no navegador")
+                ev.set_tooltip_text(f"{title}\n\n{_('Clique para abrir no navegador')}")
                 ev.connect("button-press-event", self.on_item_press, link)
                 ev.connect("realize", lambda w: w.get_window().set_cursor(
                     Gdk.Cursor.new_from_name(w.get_display(), "pointer")))
                 self.list.pack_start(ev, False, False, 0)
-            self.meta.set_text(f"atualizado {time.strftime('%H:%M')}")
+            self.meta.set_text(_("atualizado {t}", t=time.strftime("%H:%M")))
         self.list.show_all()
-        self.resize(1, 1)
+        self.fit()
 
     def add_info(self, text):
         lbl = Gtk.Label(label=text, xalign=0, wrap=True)
@@ -1831,7 +2124,7 @@ class NewsCard(InfoCard):
 
 class ClockCard(Gtk.Window):
     def __init__(self, app):
-        super().__init__(title=f"{APP_NAME} — Relógio")
+        super().__init__(title=f"{APP_NAME} — {_('Relógio')}")
         self.app = app
         setup_transparent(self)
 
@@ -1854,7 +2147,7 @@ class ClockCard(Gtk.Window):
         card.pack_start(row, False, False, 0)
         card.pack_start(self.date_lbl, False, False, 0)
         card.pack_start(self.extra_lbl, False, False, 4)
-        self.search = Gtk.SearchEntry(placeholder_text="Buscar nas caixas")
+        self.search = Gtk.SearchEntry(placeholder_text=_("Buscar nas caixas"))
         self.search.get_style_context().add_class("ordo-search")
         self.search.connect("search-changed", lambda e: self.app.set_query(e.get_text()))
         self.search.connect("activate", lambda _e: self.open_first())
@@ -1886,7 +2179,7 @@ class ClockCard(Gtk.Window):
             c.destroy()
         self.first_item = items[0] if items else None
         if query and not items:
-            empty = Gtk.Label(label="Nada nas caixas com esse nome.", xalign=0)
+            empty = Gtk.Label(label=_("Nada nas caixas com esse nome."), xalign=0)
             empty.get_style_context().add_class("search-empty")
             self.results.pack_start(empty, False, False, 0)
         for i, item in enumerate(items[: self.MAX_RESULTS]):
@@ -1899,7 +2192,7 @@ class ClockCard(Gtk.Window):
             texts = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             name = Gtk.Label(label=item.display_name, xalign=0, ellipsize=Pango.EllipsizeMode.MIDDLE)
             name.get_style_context().add_class("search-name")
-            where = Gtk.Label(label=f"em {CAT_BY_KEY[item.category][1]}", xalign=0)
+            where = Gtk.Label(label=_("em {box}", box=_(CAT_BY_KEY[item.category][1])), xalign=0)
             where.get_style_context().add_class("search-where")
             texts.pack_start(name, False, False, 0)
             texts.pack_start(where, False, False, 0)
@@ -1909,7 +2202,7 @@ class ClockCard(Gtk.Window):
             ev.connect("button-press-event", self.on_result_press, item)
             self.results.pack_start(ev, False, False, 0)
         if len(items) > self.MAX_RESULTS:
-            more = Gtk.Label(label=f"+ {len(items) - self.MAX_RESULTS} nas caixas destacadas", xalign=0)
+            more = Gtk.Label(label=_("+ {n} nas caixas destacadas", n=len(items) - self.MAX_RESULTS), xalign=0)
             more.get_style_context().add_class("search-where")
             more.set_margin_start(6)
             self.results.pack_start(more, False, False, 0)
@@ -1949,13 +2242,13 @@ class ClockCard(Gtk.Window):
         self.time_lbl.set_text(now.format("%H:%M"))
         self.sec_lbl.set_visible(self.app.cfg["show_seconds"])
         self.sec_lbl.set_text(now.format("%S"))
-        date = now.format("%A, %d de %B de %Y")
+        date = long_date(now)
         self.date_lbl.set_text(date[:1].upper() + date[1:])
         hour = now.get_hour()
-        greet = "Bom dia" if 5 <= hour < 12 else "Boa tarde" if 12 <= hour < 18 else "Boa noite"
+        greet = _("Bom dia") if 5 <= hour < 12 else _("Boa tarde") if 12 <= hour < 18 else _("Boa noite")
         user = GLib.get_real_name().split(" ")[0] if GLib.get_real_name() not in ("", "Unknown") else ""
-        self.extra_lbl.set_text(f"{greet}{', ' + user if user else ''} · semana {now.get_week_of_year()}"
-                                f" · {self.app.item_count} itens na área de trabalho")
+        self.extra_lbl.set_text(f"{greet}{', ' + user if user else ''} · {_('semana {n}', n=now.get_week_of_year())}"
+                                f" · {_('{n} itens na área de trabalho', n=self.app.item_count)}")
         return True
 
     def on_press(self, _w, ev):
@@ -1975,6 +2268,7 @@ class OrganizerApp(Gtk.Application):
     def __init__(self):
         super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.cfg = load_config()
+        set_language(self.cfg["language"])
         self.fences = {}
         self.clock = None
         self.item_count = 0
@@ -2100,10 +2394,46 @@ class OrganizerApp(Gtk.Application):
             g.update(x=x, y=y, w=col_w, h=h, collapsed=False)
             fence.apply_geometry()
             y += h + gap
+        # Coluna da direita: relógio; à esquerda dele, mercado em cima e notícias embaixo.
+        right = wa.x + wa.width - margin
         if self.clock:
             self.clock.realize()
             w = max(self.clock.get_allocated_width(), 380)
-            self.clock.move(wa.x + wa.width - w - margin, wa.y + margin)
+            right -= w
+            self.clock.move(right, wa.y + margin)
+            right -= gap
+        y = wa.y + margin
+        card_w = InfoCard.WIDTH + 52  # largura padrão do card (conteúdo + bordas)
+        if self.market:
+            g = self.market.geom()
+            g.pop("w", None)  # mercado fica no tamanho do conteúdo, que ainda pode estar carregando
+            g.pop("h", None)
+            g.update(x=right - card_w, y=y)
+            self.market.move(right - card_w, y)
+            self.market.fit()
+            y += 140 + 31 * len(self.cfg["market_assets"]) + gap  # estimativa; restack_cards() acerta
+        if self.news:
+            h = max(200, bottom - y)  # notícias ocupa o resto da coluna
+            self.news.geom().update(x=right - card_w, y=y, w=card_w, h=h)
+            self.news.move(right - card_w, y)
+            self.news.fit()
+        self.stack_news = bool(self.market and self.news)
+        if self.stack_news:
+            GLib.timeout_add(300, lambda: self.restack_cards() and False)
+        self.schedule_save()
+
+    def restack_cards(self):
+        """Depois do Reorganizar, mantém Notícias logo abaixo do Mercado quando este muda de altura."""
+        if not (getattr(self, "stack_news", False) and self.market and self.news):
+            return
+        wa = workarea()
+        mx, my = self.market.get_position()
+        y = my + self.market.get_preferred_height()[1] + 16
+        h = max(200, wa.y + wa.height - 24 - y)
+        nx = self.news.get_position()[0]
+        self.news.geom().update(x=nx, y=y, h=h)
+        self.news.move(nx, y)
+        self.news.fit()
         self.schedule_save()
 
     def place_new(self, fence):
@@ -2179,11 +2509,11 @@ class OrganizerApp(Gtk.Application):
         try:
             item.gfile.trash(None)
         except GLib.Error as e:
-            show_error(f"Não foi possível mover “{item.display_name}” para a lixeira.", e.message)
+            show_error(_("Não foi possível mover “{name}” para a lixeira.", name=item.display_name), e.message)
 
     def rename_item(self, item):
-        dlg = Gtk.Dialog(title="Renomear", flags=Gtk.DialogFlags.MODAL)
-        dlg.add_buttons("Cancelar", Gtk.ResponseType.CANCEL, "Renomear", Gtk.ResponseType.OK)
+        dlg = Gtk.Dialog(title=_("Renomear"), flags=Gtk.DialogFlags.MODAL)
+        dlg.add_buttons(_("Cancelar"), Gtk.ResponseType.CANCEL, _("Renomear"), Gtk.ResponseType.OK)
         dlg.set_default_response(Gtk.ResponseType.OK)
         entry = Gtk.Entry(text=item.name, activates_default=True, width_chars=40)
         box = dlg.get_content_area()
@@ -2325,35 +2655,46 @@ class OrganizerApp(Gtk.Application):
             menu.append(mi)
             return mi
 
-        item("Reorganizar automaticamente", self.auto_layout)
-        item("Nova nota", self.new_note)
-        item("Recolher todas", lambda: self.set_collapsed_all(True))
-        item("Expandir todas", lambda: self.set_collapsed_all(False))
-        item("Abrir pasta da Área de Trabalho",
+        item(_("Reorganizar automaticamente"), self.auto_layout)
+        item(_("Nova nota"), self.new_note)
+        item(_("Recolher todas"), lambda: self.set_collapsed_all(True))
+        item(_("Expandir todas"), lambda: self.set_collapsed_all(False))
+        item(_("Abrir pasta da Área de Trabalho"),
              lambda: Gio.AppInfo.launch_default_for_uri(Gio.File.new_for_path(desktop_dir()).get_uri(), None))
         menu.append(Gtk.SeparatorMenuItem())
-        theme_item = Gtk.MenuItem(label="Estilo das caixas")
+        theme_item = Gtk.MenuItem(label=_("Estilo das caixas"))
         theme_menu = Gtk.Menu()
         group = None
         for key, name in THEMES.items():
-            mi = Gtk.RadioMenuItem.new_with_label_from_widget(group, name)
+            mi = Gtk.RadioMenuItem.new_with_label_from_widget(group, _(name))
             group = group or mi
             mi.set_active(key == self.cfg["theme"])
             mi.connect("toggled", lambda m, k=key: m.get_active() and self.set_theme(k))
             theme_menu.append(mi)
         theme_item.set_submenu(theme_menu)
         menu.append(theme_item)
+        lang_item = Gtk.MenuItem(label=_("Idioma"))
+        lang_menu = Gtk.Menu()
+        group = None
+        for code, name in LANGUAGES.items():
+            mi = Gtk.RadioMenuItem.new_with_label_from_widget(group, _(name) if code == "auto" else name)
+            group = group or mi
+            mi.set_active(code == self.cfg["language"])
+            mi.connect("toggled", lambda m, c=code: m.get_active() and self.set_language(c))
+            lang_menu.append(mi)
+        lang_item.set_submenu(lang_menu)
+        menu.append(lang_item)
         menu.append(Gtk.SeparatorMenuItem())
-        check("Mostrar relógio", self.cfg["show_clock"], self.toggle_clock)
-        check("Mostrar segundos", self.cfg["show_seconds"], self.set_seconds)
-        check("Mostrar gadgets abaixo do relógio", self.cfg["show_gadgets"], self.set_gadgets)
-        check("Mostrar mercado financeiro", self.cfg["show_market"], self.toggle_market)
-        check("Mostrar notícias", self.cfg["show_news"], self.toggle_news)
-        check("Ocultar ícones nativos do Zorin", self.cfg["hide_native"], self.apply_hide_native)
-        check("Mostrar arquivos ocultos", self.cfg["show_hidden"], self.set_show_hidden)
-        check("Iniciar com o sistema", self.cfg["autostart"], self.set_autostart)
+        check(_("Mostrar relógio"), self.cfg["show_clock"], self.toggle_clock)
+        check(_("Mostrar segundos"), self.cfg["show_seconds"], self.set_seconds)
+        check(_("Mostrar gadgets abaixo do relógio"), self.cfg["show_gadgets"], self.set_gadgets)
+        check(_("Mostrar mercado financeiro"), self.cfg["show_market"], self.toggle_market)
+        check(_("Mostrar notícias"), self.cfg["show_news"], self.toggle_news)
+        check(_("Ocultar ícones nativos da área de trabalho"), self.cfg["hide_native"], self.apply_hide_native)
+        check(_("Mostrar arquivos ocultos"), self.cfg["show_hidden"], self.set_show_hidden)
+        check(_("Iniciar com o sistema"), self.cfg["autostart"], self.set_autostart)
         menu.append(Gtk.SeparatorMenuItem())
-        item("Sair", self.quit_app)
+        item(_("Sair"), self.quit_app)
         menu.show_all()
         return menu
 
@@ -2362,12 +2703,27 @@ class OrganizerApp(Gtk.Application):
         menu.popup_at_pointer(ev)
         self._popup = menu
 
+    def set_language(self, choice):
+        """Troca o idioma e reabre o Ordo para redesenhar tudo já traduzido."""
+        if choice == self.cfg["language"]:
+            return
+        self.cfg["language"] = choice
+        self.save_now()
+        GLib.idle_add(self.restart)
+
+    def restart(self):
+        self.restore_native_icons()  # a nova instância volta a ocultá-los
+        os.execv(sys.executable, [sys.executable, os.path.realpath(sys.argv[0])] + sys.argv[1:])
+
     def set_theme(self, theme):
         if theme == self.cfg["theme"]:
             return
         self.cfg["theme"] = theme
         for f in self.fences.values():
             f.apply_theme(theme)
+        for card in (self.market, self.news):  # o card do relógio mantém o visual próprio
+            if card:
+                apply_card_theme(card.box, theme)
         self.schedule_save()
 
     def set_gadgets(self, on):

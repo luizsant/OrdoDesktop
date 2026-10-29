@@ -24,8 +24,8 @@ Inspired by 360 Total Security's "Desktop Organizer" and Stardock Fences, Ordo g
 on your Desktop into boxes by category and keeps them up to date in real time.
 **It never moves, renames or deletes your files**: it only organizes how they are displayed.
 
-> The interface is currently in Brazilian Portuguese. Translations are welcome — see
-> [Contributing](#contributing).
+> Available in **English, Portuguese and Spanish** — it follows your system language, or pick one
+> in Settings → Idioma/Language/Idioma.
 
 ## Features
 
@@ -33,7 +33,8 @@ on your Desktop into boxes by category and keeps them up to date in real time.
   Videos, Audio, Archives, Installers and Other. A box only shows up when it has items.
 - **Your way**: drag boxes by their title, resize them from the ◢ corner, collapse them with a
   double-click and drag a file into another box (your choice is remembered).
-- **4 box styles**: Default, Light glass, Colored outline and Compact black.
+- **4 box styles**: Default, Light glass, Colored outline and Compact black — the market and news
+  cards follow the chosen style.
 - **Clock card** with the full date and, below it, the gadgets:
   - current weather and 4-day forecast ([Open-Meteo](https://open-meteo.com), no sign-up);
   - CPU, memory and disk usage;
@@ -78,7 +79,7 @@ python3 ordo_desktop.py
 
 ### Uninstall
 
-Close Ordo (right-click → **Sair**, which means "Quit") and run:
+Close Ordo (right-click → **Quit**) and run:
 
 ```bash
 sudo apt remove ordo-desktop
@@ -108,6 +109,8 @@ Native desktop icons supported by the hide option: Zorin Desktop Icons, Desktop 
 | Move a file to another box | Drag it into the other box, or right-click → Mover para a caixa ("Move to box") |
 | Choose the weather city | Right-click the weather |
 | Focus timer duration | Right-click the Foco ("Focus") button |
+| Resize the market or news card | Drag its ◢ corner (right-click → Automatic size to undo) |
+| Change the language | Right-click → Language |
 | Edit the market assets | Right-click the market card → Editar ativos ("Edit assets") |
 | Choose news country and sources | Right-click the news card → País ("Country") and the source list |
 | Hide the market or news card | Right-click the card → Ocultar este card ("Hide this card") |

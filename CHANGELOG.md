@@ -6,6 +6,17 @@ Todas as mudanças relevantes do Ordo Desktop. O formato segue o
 
 ## [Não lançado]
 
+## [1.12.0] - 2026-10-29
+
+### Adicionado
+- Interface em português, inglês e espanhol: caixas, menus, cards, clima, datas, números e
+  mensagens. Segue o idioma do sistema ou o escolhido em Configurações → Idioma.
+- Cards de mercado e notícias redimensionáveis pelo canto ◢, com rolagem e "Tamanho automático".
+- Os cards de mercado e notícias acompanham o estilo escolhido para as caixas.
+
+### Alterado
+- "Reorganizar" também posiciona o relógio e os cards de mercado e notícias.
+
 ## [1.11.0] - 2026-10-29
 
 ### Adicionado

@@ -30,7 +30,9 @@ está na sua Área de Trabalho em caixas por categoria e as mantém atualizadas 
   Imagens, Vídeos, Áudio, Compactados, Instaladores e Outros. Uma caixa só aparece quando tem itens.
 - **Do seu jeito**: arraste as caixas pelo título, redimensione pelo canto ◢, recolha com clique
   duplo e arraste um arquivo para outra caixa (a escolha fica salva).
-- **4 estilos de caixa**: Padrão, Vidro claro, Contorno colorido e Preto compacto.
+- **4 estilos de caixa**: Padrão, Vidro claro, Contorno colorido e Preto compacto — os cards de
+  mercado e notícias acompanham o estilo escolhido.
+- **Em português, inglês e espanhol**: segue o idioma do sistema ou o escolhido em Configurações → Idioma.
 - **Card de relógio** com data por extenso e, abaixo dele, os gadgets:
   - clima atual e previsão de 4 dias ([Open-Meteo](https://open-meteo.com), sem cadastro);
   - uso de CPU, memória e disco;
@@ -106,6 +108,8 @@ padrão do Ubuntu) e Gtk4 Desktop Icons NG.
 | Trocar um arquivo de caixa | Arrastar para outra caixa, ou botão direito → Mover para a caixa |
 | Escolher a cidade do clima | Botão direito no clima |
 | Duração do timer de foco | Botão direito no botão Foco |
+| Redimensionar o card de mercado ou de notícias | Arrastar o canto ◢ (botão direito → Tamanho automático desfaz) |
+| Trocar o idioma | Botão direito → Idioma |
 | Editar os ativos do mercado | Botão direito no card de mercado → Editar ativos |
 | Escolher país e fontes das notícias | Botão direito no card de notícias → País e lista de fontes |
 | Ocultar o card de mercado ou de notícias | Botão direito no card → Ocultar este card |
