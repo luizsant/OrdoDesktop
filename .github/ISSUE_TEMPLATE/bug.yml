@@ -1,0 +1,45 @@
+name: Relatar um bug
+description: Algo não funcionou como esperado
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o problema e o que você esperava que acontecesse.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Abrir o Ordo
+        2. Clicar com o botão direito em…
+        3. …
+  - type: input
+    id: distro
+    attributes:
+      label: Distro e versão
+      placeholder: Zorin OS 18, Ubuntu 24.04…
+    validations:
+      required: true
+  - type: input
+    id: gnome
+    attributes:
+      label: Versão do GNOME e tipo de sessão
+      description: Saída de `gnome-shell --version` e `echo $XDG_SESSION_TYPE`
+      placeholder: GNOME Shell 46.0, x11
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versão do Ordo
+      description: Saída de `dpkg -l ordo-desktop`, ou o commit se rodou pelo código-fonte
+  - type: textarea
+    id: log
+    attributes:
+      label: Saída do terminal
+      description: Rode `ordo-desktop` pelo terminal e cole aqui o que aparecer.
+      render: text

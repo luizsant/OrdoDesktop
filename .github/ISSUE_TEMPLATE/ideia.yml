@@ -1,0 +1,15 @@
+name: Sugerir uma ideia
+description: Novo gadget, estilo, categoria ou melhoria
+labels: [ideia]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Qual é a ideia?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Por que seria útil?
+      description: Que problema ela resolve no seu dia a dia?

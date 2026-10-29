@@ -1,0 +1,21 @@
+name: Verificação
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependências
+        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-3.0 gir1.2-gdkpixbuf-2.0 librsvg2-common
+
+      - name: Compila
+        run: python3 -m py_compile ordo_desktop.py
+
+      - name: Gera o .deb
+        run: ./build-deb.sh 0.0.0-ci && dpkg-deb --info ordo-desktop_0.0.0-ci_all.deb

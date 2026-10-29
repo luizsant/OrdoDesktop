@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Pacote gerado (vai como anexo da Release, não no código)
+build/
+*.deb
+
+# Editores e IDEs
+.vscode/
+.idea/
+*.swp
+*~
+
+# Sistema
+.directory
+.DS_Store
+
+# Segredos e arquivos locais
+.env
+
+# Ferramentas
+.claude/
