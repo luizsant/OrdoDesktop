@@ -14,6 +14,10 @@
   <a href="LICENSE.md"><img alt="Licença PolyForm Noncommercial" src="https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue"></a>
 </p>
 
+<p align="center">
+  <b>Português</b> · <a href="README.en.md">English</a>
+</p>
+
 ![Ordo Desktop em uso](docs/screenshot.png)
 
 Inspirado no "Desktop Organizer" do 360 Total Security e no Stardock Fences, o Ordo agrupa o que
@@ -108,21 +112,3 @@ Em resumo: você pode usar, copiar, estudar, modificar e redistribuir o Ordo de 
 fins comerciais. Ao redistribuir, mantenha o arquivo `LICENSE.md` com o aviso de copyright.
 Este resumo não substitui o texto da licença.
 
----
-
-<details>
-<summary><b>English</b></summary>
-
-**Ordo Desktop** is a desktop organizer for GNOME-based Linux (Zorin OS, Ubuntu, Pop!_OS…),
-inspired by 360 Total Security's Desktop Organizer and Stardock Fences. It groups the items on
-your Desktop into auto-updating boxes by file type, and adds a clock card with weather, system
-usage and quick-action gadgets, plus sticky notes. It never moves, renames or deletes your files.
-
-Install the latest `.deb` from [Releases](https://github.com/luizsant/OrdoDesktop/releases/latest)
-with `sudo apt install ./ordo-desktop_*_all.deb`, or run `python3 ordo_desktop.py` from source
-(requires `python3-gi` and `gir1.2-gtk-3.0`). Right-click any box, the clock or a note to open
-the settings. The UI is currently in Brazilian Portuguese; translations are welcome.
-Licensed under [PolyForm Noncommercial 1.0.0](LICENSE.md): free to use, modify and share for
-noncommercial purposes; selling it or any commercial use is not allowed.
-
-</details>
