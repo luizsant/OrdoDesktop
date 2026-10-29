@@ -1,62 +1,64 @@
 <p align="center">
-  <img src="ordo-desktop.svg" width="96" alt="Logo do Ordo Desktop">
+  <img src="ordo-desktop.svg" width="96" alt="Ordo Desktop logo">
 </p>
 
 <h1 align="center">Ordo Desktop</h1>
 
 <p align="center">
-  Organizador de área de trabalho para Linux com GNOME: caixas automáticas por tipo de arquivo,
-  relógio, clima, notas adesivas e atalhos rápidos.
+  Desktop organizer for GNOME on Linux: auto-sorting boxes by file type,
+  clock, weather, sticky notes and quick shortcuts.
 </p>
 
 <p align="center">
   <a href="https://github.com/luizsant/OrdoDesktop/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/luizsant/OrdoDesktop"></a>
-  <a href="LICENSE.md"><img alt="Licença PolyForm Noncommercial" src="https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue"></a>
+  <a href="LICENSE.md"><img alt="PolyForm Noncommercial license" src="https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue"></a>
 </p>
 
 <p align="center">
-  <b>Português</b> · <a href="README.en.md">English</a>
+  <b>English</b> · <a href="README.pt-BR.md">Português</a>
 </p>
 
-![Ordo Desktop em uso](docs/screenshot.png)
+![Ordo Desktop in action](docs/screenshot.png)
 
-Inspirado no "Desktop Organizer" do 360 Total Security e no Stardock Fences, o Ordo agrupa o que
-está na sua Área de Trabalho em caixas por categoria e as mantém atualizadas em tempo real.
-**Ele não move, renomeia nem apaga seus arquivos**: só organiza a visualização.
+Inspired by 360 Total Security's "Desktop Organizer" and Stardock Fences, Ordo groups everything
+on your Desktop into boxes by category and keeps them up to date in real time.
+**It never moves, renames or deletes your files**: it only organizes how they are displayed.
 
-## Recursos
+> The interface is currently in Brazilian Portuguese. Translations are welcome — see
+> [Contributing](#contributing).
 
-- **Caixas automáticas**: Aplicativos, Pastas, PDFs, Documentos, Planilhas, Apresentações,
-  Imagens, Vídeos, Áudio, Compactados, Instaladores e Outros. Uma caixa só aparece quando tem itens.
-- **Do seu jeito**: arraste as caixas pelo título, redimensione pelo canto ◢, recolha com clique
-  duplo e arraste um arquivo para outra caixa (a escolha fica salva).
-- **4 estilos de caixa**: Padrão, Vidro claro, Contorno colorido e Preto compacto.
-- **Card de relógio** com data por extenso e, abaixo dele, os gadgets:
-  - clima atual e previsão de 4 dias ([Open-Meteo](https://open-meteo.com), sem cadastro);
-  - uso de CPU, memória e disco;
-  - atalhos: reorganizar, captura de tela, calculadora, terminal, Downloads, lixeira,
-    bloquear tela, não perturbe, timer de foco, recolher caixas, monitor e nova nota.
-- **Notas adesivas** coloridas, salvas automaticamente.
-- **Sem ícone na bandeja**: tudo é configurado pelo botão direito sobre qualquer caixa,
-  o relógio ou uma nota.
-- Inicia com o sistema e oculta os ícones nativos da área de trabalho enquanto está aberto
-  (eles voltam quando o Ordo fecha).
+## Features
 
-## Instalação
+- **Automatic boxes**: Apps, Folders, PDFs, Documents, Spreadsheets, Presentations, Images,
+  Videos, Audio, Archives, Installers and Other. A box only shows up when it has items.
+- **Your way**: drag boxes by their title, resize them from the ◢ corner, collapse them with a
+  double-click and drag a file into another box (your choice is remembered).
+- **4 box styles**: Default, Light glass, Colored outline and Compact black.
+- **Clock card** with the full date and, below it, the gadgets:
+  - current weather and 4-day forecast ([Open-Meteo](https://open-meteo.com), no sign-up);
+  - CPU, memory and disk usage;
+  - shortcuts: rearrange, screenshot, calculator, terminal, Downloads, trash, lock screen,
+    do not disturb, focus timer, collapse boxes, system monitor and new note.
+- **Sticky notes** in several colors, saved automatically.
+- **No tray icon**: everything is configured by right-clicking any box, the clock or a note.
+- Starts with your session and hides the native desktop icons while it is running
+  (they come back when Ordo closes).
 
-### Pacote .deb (Ubuntu, Zorin OS, Pop!_OS, Linux Mint com GNOME, Debian…)
+## Installation
 
-Baixe o arquivo `.deb` mais recente em
-[Releases](https://github.com/luizsant/OrdoDesktop/releases/latest) e instale:
+### .deb package (Ubuntu, Zorin OS, Pop!_OS, Linux Mint with GNOME, Debian…)
+
+Download the latest `.deb` file from
+[Releases](https://github.com/luizsant/OrdoDesktop/releases/latest) and install it:
 
 ```bash
 sudo apt install ./ordo-desktop_*_all.deb
 ```
 
-Depois abra **Ordo Desktop** pelo menu de aplicativos. Na primeira execução ele organiza as caixas
-sozinho e passa a iniciar com o sistema.
+Then open **Ordo Desktop** from the applications menu. On first launch it arranges the boxes by
+itself and enables starting with your session.
 
-### Direto do código-fonte
+### From source
 
 ```bash
 sudo apt install python3-gi gir1.2-gtk-3.0
@@ -65,50 +67,49 @@ cd OrdoDesktop
 python3 ordo_desktop.py
 ```
 
-### Desinstalar
+### Uninstall
 
-Feche o Ordo (botão direito → **Sair**) e rode:
+Close Ordo (right-click → **Sair**, which means "Quit") and run:
 
 ```bash
 sudo apt remove ordo-desktop
 ```
 
-Suas configurações ficam em `~/.config/ordo-desktop/`; apague essa pasta se quiser zerar tudo.
+Your settings live in `~/.config/ordo-desktop/`; delete that folder if you want a clean slate.
 
-## Requisitos
+## Requirements
 
-- GNOME (testado no Zorin OS 18 / GNOME 46) em sessão **X11**.
-  Em Wayland o Ordo roda via XWayland, ainda em caráter experimental.
-- Python 3, PyGObject e GTK 3 (já vêm instalados na maioria das distros com GNOME).
-- Opcionais: `xdotool` (botão Captura), `libnotify-bin` (aviso do timer de foco).
+- GNOME (tested on Zorin OS 18 / GNOME 46) in an **X11** session.
+  On Wayland, Ordo runs through XWayland, still experimental.
+- Python 3, PyGObject and GTK 3 (already installed on most GNOME distros).
+- Optional: `xdotool` (Screenshot button), `libnotify-bin` (focus timer notification).
 
-Ícones nativos compatíveis com a opção de ocultar: Zorin Desktop Icons, Desktop Icons NG (DING,
-padrão do Ubuntu) e Gtk4 Desktop Icons NG.
+Native desktop icons supported by the hide option: Zorin Desktop Icons, Desktop Icons NG
+(DING, Ubuntu's default) and Gtk4 Desktop Icons NG.
 
-## Uso rápido
+## Quick guide
 
-| Ação | Como |
+| Action | How |
 | --- | --- |
-| Abrir as configurações | Botão direito no título ou área vazia de uma caixa, no relógio ou numa nota |
-| Mover uma caixa ou o relógio | Arrastar pelo título (ou pelo card do relógio) |
-| Redimensionar uma caixa | Arrastar o canto ◢ |
-| Recolher/expandir uma caixa | Clique duplo no título |
-| Trocar um arquivo de caixa | Arrastar para outra caixa, ou botão direito → Mover para a caixa |
-| Escolher a cidade do clima | Botão direito no clima |
-| Duração do timer de foco | Botão direito no botão Foco |
+| Open the settings | Right-click a box title or empty area, the clock or a note |
+| Move a box or the clock | Drag it by the title (or by the clock card) |
+| Resize a box | Drag the ◢ corner |
+| Collapse/expand a box | Double-click the title |
+| Move a file to another box | Drag it into the other box, or right-click → Mover para a caixa ("Move to box") |
+| Choose the weather city | Right-click the weather |
+| Focus timer duration | Right-click the Foco ("Focus") button |
 
-## Contribuindo
+## Contributing
 
-Contribuições são muito bem-vindas: correções, novas categorias, gadgets, estilos, traduções
-e suporte a outras distros. Veja o [CONTRIBUTING.md](CONTRIBUTING.md) para preparar o ambiente,
-testar e abrir um pull request.
+Contributions are very welcome: fixes, new categories, gadgets, styles, translations and support
+for other distros. See [CONTRIBUTING.md](CONTRIBUTING.md) (in Portuguese) to set up the
+environment, test and open a pull request. Issues and pull requests in English are welcome too.
 
-## Licença
+## License
 
 [PolyForm Noncommercial 1.0.0](LICENSE.md) © 2026 Luiz Santiago.
 
-Em resumo: você pode usar, copiar, estudar, modificar e redistribuir o Ordo de graça, para fins
-**não comerciais**. **Não é permitido vender** o Ordo nem usá-lo, ou versões modificadas, com
-fins comerciais. Ao redistribuir, mantenha o arquivo `LICENSE.md` com o aviso de copyright.
-Este resumo não substitui o texto da licença.
-
+In short: you may use, copy, study, modify and redistribute Ordo for free, for **noncommercial**
+purposes. **Selling Ordo is not allowed**, nor using it, or modified versions of it, for
+commercial purposes. When redistributing, keep the `LICENSE.md` file with its copyright notice.
+This summary does not replace the license text.
