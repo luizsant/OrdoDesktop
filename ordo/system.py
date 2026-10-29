@@ -43,6 +43,28 @@ def desktop_dir():
     return os.path.expanduser("~/Desktop")
 
 
+def desktop_dirs():
+    """Pastas cujo conteúdo aparece na área de trabalho. No Windows, a pública também
+    (atalhos instalados "para todos os usuários" ficam em C:\\Users\\Public\\Desktop)."""
+    dirs = [desktop_dir()]
+    if IS_WINDOWS:
+        public = _windows_known_folder("{C4AA340D-F20F-4863-AFEF-F87EF2E6BA25}")
+        if public and os.path.isdir(public) and os.path.normcase(public) != os.path.normcase(dirs[0]):
+            dirs.append(public)
+    return dirs
+
+
+def is_hidden(path):
+    name = os.path.basename(path)
+    if name.startswith(".") or name.endswith("~") or name.lower() == "desktop.ini":
+        return True
+    if IS_WINDOWS:
+        import ctypes
+        attrs = ctypes.windll.kernel32.GetFileAttributesW(path)
+        return attrs != -1 and bool(attrs & (0x2 | 0x4))  # FILE_ATTRIBUTE_HIDDEN | SYSTEM
+    return False
+
+
 def downloads_dir():
     if IS_WINDOWS:
         return _windows_known_folder("{374DE290-123F-4565-9164-39C4925E467B}") or os.path.expanduser("~/Downloads")
@@ -400,3 +422,46 @@ def play_alarm():
         winsound.MessageBeep(winsound.MB_ICONASTERISK)
     else:
         spawn("canberra-gtk-play", "-i", "alarm-clock-elapsed")
+
+
+# ---------------------------------------------------------------------------
+# Windows: manter as janelas do Ordo no nível da área de trabalho
+# ---------------------------------------------------------------------------
+def pin_to_desktop(hwnd):
+    """Faz a janela "pertencer" à área de trabalho (Progman): fica sempre logo acima dela, abaixo dos
+    programas, e continua visível quando o usuário usa Win+D / "Mostrar área de trabalho"."""
+    import ctypes
+    user32 = ctypes.windll.user32
+    progman = user32.FindWindowW("Progman", None)
+    if not progman:
+        return False
+    set_long = user32.SetWindowLongPtrW
+    set_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
+    set_long.restype = ctypes.c_void_p
+    set_long(hwnd, -8, progman)  # GWLP_HWNDPARENT = dono da janela
+    send_to_bottom(hwnd)
+    return True
+
+
+def send_to_bottom(hwnd):
+    import ctypes
+    SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE = 0x1, 0x2, 0x10
+    ctypes.windll.user32.SetWindowPos(ctypes.c_void_p(hwnd), ctypes.c_void_p(1), 0, 0, 0, 0,
+                                      SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE)  # 1 = HWND_BOTTOM
+
+
+def keep_at_bottom(message):
+    """Trata WM_WINDOWPOSCHANGING para a janela nunca subir acima dos programas ao ser clicada."""
+    import ctypes
+    from ctypes import wintypes
+    msg = wintypes.MSG.from_address(int(message))
+    if msg.message != 0x0046:  # WM_WINDOWPOSCHANGING
+        return
+
+    class WINDOWPOS(ctypes.Structure):
+        _fields_ = [("hwnd", wintypes.HWND), ("hwndInsertAfter", wintypes.HWND), ("x", ctypes.c_int),
+                    ("y", ctypes.c_int), ("cx", ctypes.c_int), ("cy", ctypes.c_int), ("flags", wintypes.UINT)]
+
+    pos = WINDOWPOS.from_address(msg.lParam)
+    if not pos.flags & 0x4:  # sem SWP_NOZORDER: alguém está mudando a ordem → manda para o fundo
+        pos.hwndInsertAfter = 1  # HWND_BOTTOM

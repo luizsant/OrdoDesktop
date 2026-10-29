@@ -23,7 +23,10 @@ class _Job(QRunnable):
             res, err = self.work(), None
         except Exception as e:  # rede fora, timeout, formato inesperado
             res, err = None, e
-        self.emitter.done.emit(res, err)
+        try:
+            self.emitter.done.emit(res, err)
+        except RuntimeError:  # o app fechou antes da resposta chegar
+            pass
 
 
 _alive = set()  # mantém os emissores vivos até a resposta chegar
@@ -99,11 +102,21 @@ class DesktopWindow(QWidget):
             # Tipo "área de trabalho": o gerenciador de janelas mantém atrás das janelas normais.
             self.setAttribute(Qt.WA_X11NetWmWindowTypeDesktop)
         else:
-            flags |= Qt.Tool | Qt.WindowStaysOnBottomHint  # Windows: fase 3 prende ao WorkerW
+            flags |= Qt.Tool  # Windows: fora da barra de tarefas e do Alt+Tab; showEvent prende ao desktop
         if os.environ.get("ORDO_TEST_ABOVE"):  # só para capturas de teste
             flags = Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
         self.setWindowFlags(flags)
         self._drag = None
+
+    def showEvent(self, ev):
+        super().showEvent(ev)
+        if system.IS_WINDOWS and not os.environ.get("ORDO_TEST_ABOVE"):
+            system.pin_to_desktop(int(self.winId()))
+
+    def nativeEvent(self, event_type, message):
+        if system.IS_WINDOWS and not os.environ.get("ORDO_TEST_ABOVE") and event_type == b"windows_generic_MSG":
+            system.keep_at_bottom(message)
+        return False, 0
 
     # arrastar pela área que chamar begin_drag()
     def begin_drag(self, ev):
@@ -130,6 +143,10 @@ class DesktopWindow(QWidget):
 
     def contextMenuEvent(self, ev):
         self.app.main_menu().exec(ev.globalPos())
+
+
+if not system.IS_WINDOWS:
+    del DesktopWindow.nativeEvent  # no Linux, evita uma chamada Python a cada evento do X11
 
 
 class Grip(QWidget):

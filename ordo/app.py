@@ -1,4 +1,5 @@
 """Ordo Desktop em Qt (PySide6): caixas automáticas, relógio e menus — Windows e Linux."""
+import json
 import os
 import shutil
 import signal
@@ -72,16 +73,16 @@ class DesktopItem:
 
 
 def scan_desktop(show_hidden=False):
-    folder = system.desktop_dir()
-    try:
-        names = os.listdir(folder)
-    except OSError:
-        return []
     items = []
-    for n in names:
-        if not show_hidden and (n.startswith(".") or n.endswith("~") or n.lower() == "desktop.ini"):
+    for folder in system.desktop_dirs():
+        try:
+            names = os.listdir(folder)
+        except OSError:
             continue
-        items.append(DesktopItem(os.path.join(folder, n)))
+        for n in names:
+            path = os.path.join(folder, n)
+            if show_hidden or not system.is_hidden(path):
+                items.append(DesktopItem(path))
     return items
 
 
@@ -377,7 +378,7 @@ class OrdoApp(QApplication):
         if self.cfg["hide_native"]:
             self.apply_hide_native(True)
         system.set_autostart(self.cfg["autostart"])
-        self.watcher = QFileSystemWatcher([system.desktop_dir()], self)
+        self.watcher = QFileSystemWatcher(system.desktop_dirs(), self)
         self.watcher.directoryChanged.connect(lambda _p: self.refresh_timer.start())
         if self.cfg["show_clock"]:
             self.toggle_clock(True)
@@ -522,9 +523,9 @@ class OrdoApp(QApplication):
         self.refresh_timer.start()
 
     def drop_into(self, key, paths):
-        desk = os.path.normcase(os.path.abspath(system.desktop_dir()))
+        desks = {os.path.normcase(os.path.abspath(d)) for d in system.desktop_dirs()}
         for p in paths:
-            if os.path.normcase(os.path.dirname(os.path.abspath(p))) == desk:
+            if os.path.normcase(os.path.dirname(os.path.abspath(p))) in desks:
                 self.assign_box(os.path.basename(p), key)  # já está na área de trabalho: só troca de caixa
                 continue
             target = os.path.join(system.desktop_dir(), os.path.basename(p))
@@ -733,7 +734,36 @@ MENU_STYLE = """
 """
 
 
+def selftest(app, spec):
+    """ORDO_SELFTEST="arquivo.png;segundos": captura a tela, grava um diagnóstico e fecha (usado no CI)."""
+    path, _sep, secs = spec.partition(";")
+
+    def run():
+        QApplication.primaryScreen().grabWindow(0).save(path)
+        info = {"platform": sys.platform, "desktop_dirs": system.desktop_dirs(), "items": app.item_count,
+                "boxes": sorted(app.fences), "cards": sorted(app.cards), "notes": len(app.notes),
+                "native_hidden": app.cfg["native_disabled"], "clock": bool(app.clock),
+                "windows": [w.windowTitle() for w in app.topLevelWidgets() if w.isVisible()]}
+        with open(os.path.splitext(path)[0] + ".json", "w", encoding="utf-8") as f:
+            json.dump(info, f, ensure_ascii=False, indent=2)
+        app.quit_app()
+
+    QTimer.singleShot(int(float(secs or 20) * 1000), run)
+
+
 def main():
+    # "ordo-desktop --quit" fecha a instância aberta com segurança (devolve os ícones nativos).
+    # O desinstalador do Windows usa isso em vez de matar o processo.
+    if "--quit" in sys.argv:
+        app = QApplication(sys.argv)
+        sock = QLocalSocket()
+        sock.connectToServer(SERVER_NAME)
+        if sock.waitForConnected(1000):
+            sock.write(b"quit")
+            sock.flush()
+            sock.waitForBytesWritten(1000)
+            sock.waitForDisconnected(5000)
+        return 0
     app = OrdoApp(sys.argv)
     # Uma instância só: se já existe, apenas sai (a primeira continua cuidando do desktop).
     probe = QLocalSocket()
@@ -743,6 +773,14 @@ def main():
     QLocalServer.removeServer(SERVER_NAME)
     server = QLocalServer(app)
     server.listen(SERVER_NAME)
+
+    def on_client():
+        conn = server.nextPendingConnection()
+        conn.readyRead.connect(lambda: conn.readAll().data().strip() == b"quit" and app.quit_app())
+
+    server.newConnection.connect(on_client)
+    if os.environ.get("ORDO_SELFTEST"):
+        selftest(app, os.environ["ORDO_SELFTEST"])
     app.setStyleSheet(MENU_STYLE)
     app.setFont(QFont(app.font().family(), 10))
     # Logout/kill também devolvem os ícones nativos, não só o menu "Sair".
