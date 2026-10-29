@@ -39,8 +39,10 @@ está na sua Área de Trabalho em caixas por categoria e as mantém atualizadas 
 - **Card de mercado**: Ibovespa, S&P 500, Nasdaq, dólar, euro, Bitcoin e ações (Petrobras, Vale e
   Itaú por padrão — editável), com variação do dia e minigráfico, além de Selic, CDI e IPCA 12 meses
   do Banco Central.
-- **Card de notícias**: últimas manchetes de InfoMoney, Valor, Agência Brasil, G1, CNN Brasil,
-  Exame, Money Times e Poder360 (você escolhe as fontes); clique na manchete para abrir no navegador.
+- **Card de notícias**: manchetes gerais de veículos reconhecidos, por país — Brasil (Agência
+  Brasil, G1, Folha, BBC News Brasil…), Portugal, Estados Unidos, Reino Unido, Espanha, Argentina e
+  Mundo (BBC, DW, France 24, Al Jazeera…). Você escolhe o país e as fontes; clique na manchete para
+  abrir no navegador.
 - **Notas adesivas** coloridas, salvas automaticamente.
 - **Sem ícone na bandeja**: tudo é configurado pelo botão direito sobre qualquer caixa,
   o relógio ou uma nota.
@@ -102,7 +104,7 @@ padrão do Ubuntu) e Gtk4 Desktop Icons NG.
 | Escolher a cidade do clima | Botão direito no clima |
 | Duração do timer de foco | Botão direito no botão Foco |
 | Editar os ativos do mercado | Botão direito no card de mercado → Editar ativos |
-| Escolher as fontes de notícias | Botão direito no card de notícias |
+| Escolher país e fontes das notícias | Botão direito no card de notícias → País e lista de fontes |
 | Mostrar/ocultar mercado ou notícias | Botão direito em qualquer card → Mostrar mercado financeiro / Mostrar notícias |
 
 ## Fontes de dados

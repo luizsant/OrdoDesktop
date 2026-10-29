@@ -17,7 +17,7 @@ import urllib.parse
 import urllib.request
 import webbrowser
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 
 import gi
@@ -199,17 +199,67 @@ DEFAULT_ASSETS = [
 ]
 # Indicadores do Banco Central (API SGS, oficial): código da série -> nome
 BCB_SERIES = [(432, "Selic"), (4389, "CDI"), (13522, "IPCA 12m")]
-# Feeds RSS públicos de notícias
-NEWS_FEEDS = {
-    "infomoney": ("InfoMoney", "https://www.infomoney.com.br/feed/"),
-    "valor": ("Valor", "https://valor.globo.com/rss/valor"),
-    "agenciabrasil": ("Agência Brasil", "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml"),
-    "g1": ("G1 Economia", "https://g1.globo.com/rss/g1/economia/"),
-    "cnn": ("CNN Brasil", "https://www.cnnbrasil.com.br/feed/"),
-    "exame": ("Exame", "https://exame.com/feed/"),
-    "moneytimes": ("Money Times", "https://www.moneytimes.com.br/feed/"),
-    "poder360": ("Poder360", "https://www.poder360.com.br/feed/"),
+# Feeds RSS públicos de veículos reconhecidos, por país: chave -> (nome, URL, ligado por padrão)
+NEWS_COUNTRIES = {
+    "br": ("Brasil", {
+        "agenciabrasil": ("Agência Brasil", "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml", True),
+        "g1": ("G1", "https://g1.globo.com/rss/g1/", True),
+        "folha": ("Folha", "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml", True),
+        "bbcbrasil": ("BBC News Brasil", "https://feeds.bbci.co.uk/portuguese/rss.xml", True),
+        "estadao": ("Estadão (política)", "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/politica/",
+                    False),
+        "agenciasenado": ("Agência Senado", "https://www12.senado.leg.br/noticias/feed/todasnoticias/RSS", False),
+        "nexo": ("Nexo", "https://www.nexojornal.com.br/rss.xml", False),
+        "cnnbrasil": ("CNN Brasil", "https://www.cnnbrasil.com.br/feed/", False),
+        "poder360": ("Poder360", "https://www.poder360.com.br/feed/", False),
+        "dwbrasil": ("DW Brasil", "https://rss.dw.com/rdf/rss-br-all", False),
+        "valor": ("Valor (economia)", "https://valor.globo.com/rss/valor", False),
+        "infomoney": ("InfoMoney (economia)", "https://www.infomoney.com.br/feed/", False),
+        "exame": ("Exame (economia)", "https://exame.com/feed/", False),
+    }),
+    "pt": ("Portugal", {
+        "publico": ("Público", "https://feeds.feedburner.com/PublicoRSS", True),
+        "rtp": ("RTP Notícias", "https://www.rtp.pt/noticias/rss", True),
+        "observador": ("Observador", "https://observador.pt/feed/", True),
+    }),
+    "us": ("Estados Unidos", {
+        "npr": ("NPR", "https://feeds.npr.org/1001/rss.xml", True),
+        "nyt": ("The New York Times", "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", True),
+        "pbs": ("PBS NewsHour", "https://www.pbs.org/newshour/feeds/rss/headlines", True),
+        "cbs": ("CBS News", "https://www.cbsnews.com/latest/rss/main", False),
+        "abc": ("ABC News", "https://abcnews.go.com/abcnews/topstories", False),
+    }),
+    "uk": ("Reino Unido", {
+        "bbc": ("BBC News", "https://feeds.bbci.co.uk/news/rss.xml", True),
+        "guardian": ("The Guardian", "https://www.theguardian.com/uk/rss", True),
+        "sky": ("Sky News", "https://feeds.skynews.com/feeds/rss/home.xml", True),
+        "independent": ("The Independent", "https://www.independent.co.uk/news/uk/rss", False),
+    }),
+    "es": ("Espanha", {
+        "elpais": ("El País", "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", True),
+        "elmundo": ("El Mundo", "https://e00-elmundo.uecdn.es/elmundo/rss/portada.xml", True),
+        "lavanguardia": ("La Vanguardia", "https://www.lavanguardia.com/rss/home.xml", True),
+        "eldiario": ("elDiario.es", "https://www.eldiario.es/rss/", False),
+    }),
+    "ar": ("Argentina", {
+        "lanacion": ("La Nación", "https://www.lanacion.com.ar/arc/outboundfeeds/rss/?outputType=xml", True),
+        "clarin": ("Clarín", "https://www.clarin.com/rss/lo-ultimo/", True),
+        "infobae": ("Infobae", "https://www.infobae.com/arc/outboundfeeds/rss/", True),
+    }),
+    "world": ("Mundo", {
+        "bbcworld": ("BBC World", "https://feeds.bbci.co.uk/news/world/rss.xml", True),
+        "dw": ("DW", "https://rss.dw.com/rdf/rss-en-all", True),
+        "france24": ("France 24", "https://www.france24.com/en/rss", True),
+        "aljazeera": ("Al Jazeera", "https://www.aljazeera.com/xml/rss/all.xml", True),
+        "guardianworld": ("The Guardian (mundo)", "https://www.theguardian.com/world/rss", False),
+        "euronews": ("Euronews", "https://www.euronews.com/rss?level=theme&name=news", False),
+        "onu": ("ONU News (português)", "https://news.un.org/feed/subscribe/pt/news/all/rss.xml", False),
+    }),
 }
+
+
+def default_news_sources(country):
+    return [k for k, (_n, _u, on) in NEWS_COUNTRIES[country][1].items() if on]
 
 # Códigos WMO do Open-Meteo -> (descrição, ícone de dia, ícone de noite)
 WEATHER_CODES = {
@@ -261,7 +311,10 @@ def load_config():
     cfg.setdefault("show_market", True)
     cfg.setdefault("show_news", True)
     cfg.setdefault("market_assets", DEFAULT_ASSETS)
-    cfg.setdefault("news_sources", ["infomoney", "valor", "agenciabrasil"])
+    cfg.setdefault("news_country", "br")
+    # Fontes escolhidas por país. Na 1.10.0 era uma lista só de economia: volta ao padrão geral.
+    if not isinstance(cfg.get("news_sources"), dict):
+        cfg["news_sources"] = {}
     cfg.setdefault("cards", {})  # posição dos cards de mercado/notícias
     cfg.setdefault("autostart", True)
     cfg.setdefault("note", "")
@@ -1324,7 +1377,7 @@ class InfoCard(Gtk.Window):
         self.box.get_style_context().add_class("clock-card")
         self.box.set_size_request(self.WIDTH, -1)
         head = Gtk.Box(spacing=8)
-        t = Gtk.Label(label=title.upper(), xalign=0)
+        t = self.title_lbl = Gtk.Label(label=title.upper(), xalign=0)
         t.get_style_context().add_class("card-title")
         self.meta = Gtk.Label(xalign=1)
         self.meta.get_style_context().add_class("card-meta")
@@ -1564,9 +1617,13 @@ class NewsCard(InfoCard):
     REFRESH_S = 15 * 60
     MAX_ITEMS = 7
     PER_SOURCE = 3  # para uma fonte muito ativa não ocupar o card inteiro
+    MAX_AGE_H = 72  # feed parado não deve mostrar notícia velha como se fosse nova
+    # Chamadas de vídeo/programação que alguns portais misturam às notícias
+    NOT_NEWS = re.compile(r"^(assista|siga|veja|v[íi]deo|ao vivo|ouça|podcast|watch|live:)\b", re.I)
 
     def __init__(self, app):
         super().__init__(app, "news", "Notícias")
+        self.update_title()
         self.list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1)
         self.list.set_margin_top(4)
         self.box.pack_start(self.list, False, False, 0)
@@ -1575,21 +1632,79 @@ class NewsCard(InfoCard):
         self.refresh()
         GLib.timeout_add_seconds(self.REFRESH_S, lambda: self.refresh() or True)
 
+    def country(self):
+        c = self.app.cfg["news_country"]
+        return c if c in NEWS_COUNTRIES else "br"
+
+    def sources(self):
+        """Fontes ligadas no país atual (padrão do país se o usuário nunca mexeu)."""
+        c = self.country()
+        chosen = self.app.cfg["news_sources"].get(c)
+        if chosen is None:
+            return default_news_sources(c)
+        return [k for k in chosen if k in NEWS_COUNTRIES[c][1]]
+
+    def update_title(self):
+        self.title_lbl.set_text(f"NOTÍCIAS · {NEWS_COUNTRIES[self.country()][0].upper()}")
+
     def card_menu(self):
         menu = super().card_menu()
+        country_item = Gtk.MenuItem(label="País")
+        sub = Gtk.Menu()
+        group = None
+        for code, (label, _feeds) in NEWS_COUNTRIES.items():
+            mi = Gtk.RadioMenuItem.new_with_label_from_widget(group, label)
+            group = group or mi
+            mi.set_active(code == self.country())
+            mi.connect("toggled", lambda m, c=code: m.get_active() and self.set_country(c))
+            sub.append(mi)
+        country_item.set_submenu(sub)
+        menu.append(country_item)
         menu.append(Gtk.SeparatorMenuItem())
-        for key, (name, _url) in NEWS_FEEDS.items():
+        head = Gtk.MenuItem(label=f"Fontes — {NEWS_COUNTRIES[self.country()][0]}")
+        head.set_sensitive(False)
+        menu.append(head)
+        active = self.sources()
+        for key, (name, _url, _on) in NEWS_COUNTRIES[self.country()][1].items():
             mi = Gtk.CheckMenuItem(label=name)
-            mi.set_active(key in self.app.cfg["news_sources"])
+            mi.set_active(key in active)
             mi.connect("toggled", lambda m, k=key: self.toggle_source(k, m.get_active()))
             menu.append(mi)
         return menu
 
+    def set_country(self, code):
+        if code == self.app.cfg["news_country"]:
+            return
+        self.app.cfg["news_country"] = code
+        self.app.schedule_save()
+        self.update_title()
+        self.refresh()
+
     def toggle_source(self, key, on):
-        srcs = [k for k in self.app.cfg["news_sources"] if k != key] + ([key] if on else [])
-        self.app.cfg["news_sources"] = [k for k in NEWS_FEEDS if k in srcs]
+        c = self.country()
+        srcs = [k for k in self.sources() if k != key] + ([key] if on else [])
+        self.app.cfg["news_sources"][c] = [k for k in NEWS_COUNTRIES[c][1] if k in srcs]
         self.app.schedule_save()
         self.refresh()
+
+    @staticmethod
+    def parse_entry(el):
+        """(data, título, link) de um <item> RSS/RDF ou <entry> Atom; None para outros elementos."""
+        if el.tag.rsplit("}", 1)[-1] not in ("item", "entry"):
+            return None
+        fields = {}
+        for child in el:
+            tag = child.tag.rsplit("}", 1)[-1]
+            if tag == "link" and not (child.text or "").strip():
+                if child.get("rel", "alternate") == "alternate":  # Atom: <link href="…"/>
+                    fields.setdefault("link", child.get("href", ""))
+            elif tag in ("title", "link", "pubDate", "date", "published", "updated"):
+                fields.setdefault(tag, (child.text or "").strip())
+        title, link = fields.get("title", ""), fields.get("link", "").strip()
+        if not title or not link.startswith("http"):
+            return None
+        when = next((fields[k] for k in ("pubDate", "date", "published", "updated") if fields.get(k)), None)
+        return NewsCard.parse_date(when), title, link
 
     @staticmethod
     def parse_date(text):
@@ -1611,22 +1726,22 @@ class NewsCard(InfoCard):
         if self.loading:
             return
         self.loading = True
-        sources = list(self.app.cfg["news_sources"])
+        feeds = NEWS_COUNTRIES[self.country()][1]
+        sources = [(feeds[k][0], feeds[k][1]) for k in self.sources()]
 
         def work():
             items = []
-            for key in sources:
-                name, url = NEWS_FEEDS[key]
+            for name, url in sources:
                 try:
                     root = ET.fromstring(http_get(url))
                 except Exception:
                     continue
                 feed = []
-                for it in root.iter("item"):
-                    title = (it.findtext("title") or "").strip()
-                    link = (it.findtext("link") or "").strip()
-                    if title and link.startswith("http"):
-                        feed.append((self.parse_date(it.findtext("pubDate")), name, title, link))
+                oldest = datetime.now(timezone.utc) - timedelta(hours=self.MAX_AGE_H)
+                for it in root.iter():
+                    entry = self.parse_entry(it)
+                    if entry and (entry[0] is None or entry[0] >= oldest) and not self.NOT_NEWS.match(entry[1]):
+                        feed.append((entry[0], name, entry[1], entry[2]))
                 feed.sort(key=lambda x: x[0] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
                 items += feed[: self.PER_SOURCE]
             items.sort(key=lambda x: x[0] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
@@ -1638,7 +1753,7 @@ class NewsCard(InfoCard):
         self.loading = False
         for c in self.list.get_children():
             c.destroy()
-        if not self.app.cfg["news_sources"]:
+        if not self.sources():
             self.meta.set_text("")
             self.add_info("Nenhuma fonte escolhida — botão direito para escolher.")
         elif err or not items:

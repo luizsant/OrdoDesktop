@@ -11,8 +11,9 @@ Todas as mudanças relevantes do Ordo Desktop. O formato segue o
 ### Adicionado
 - Card de mercado: índices, moedas, Bitcoin e ações com variação do dia e minigráfico, além de
   Selic, CDI e IPCA 12 meses do Banco Central. Lista de ativos editável.
-- Card de notícias com manchetes de feeds RSS públicos (InfoMoney, Valor, Agência Brasil, G1,
-  CNN Brasil, Exame, Money Times e Poder360), com escolha das fontes.
+- Card de notícias gerais por país (Brasil, Portugal, Estados Unidos, Reino Unido, Espanha,
+  Argentina e Mundo), com manchetes de feeds RSS públicos de veículos reconhecidos e escolha das
+  fontes de cada país. Notícias com mais de 3 dias e chamadas de vídeo são ignoradas.
 
 ## [1.9.0] - 2026-10-29
 

@@ -42,8 +42,10 @@ on your Desktop into boxes by category and keeps them up to date in real time.
 - **Market card**: Ibovespa, S&P 500, Nasdaq, dollar, euro, Bitcoin and stocks (Petrobras, Vale,
   Itaú by default — editable), with the day's change and a mini chart, plus Selic, CDI and
   12-month IPCA from the Brazilian Central Bank.
-- **News card**: latest headlines from InfoMoney, Valor, Agência Brasil, G1, CNN Brasil, Exame,
-  Money Times and Poder360 (pick your sources); click a headline to open it in the browser.
+- **News card**: general headlines from well-known outlets, by country — Brazil (Agência Brasil, G1,
+  Folha, BBC News Brasil…), Portugal, United States, United Kingdom, Spain, Argentina and World
+  (BBC, DW, France 24, Al Jazeera…). Pick the country and the sources; click a headline to open it
+  in the browser.
 - **Sticky notes** in several colors, saved automatically.
 - **No tray icon**: everything is configured by right-clicking any box, the clock or a note.
 - Starts with your session and hides the native desktop icons while it is running
@@ -104,7 +106,7 @@ Native desktop icons supported by the hide option: Zorin Desktop Icons, Desktop 
 | Choose the weather city | Right-click the weather |
 | Focus timer duration | Right-click the Foco ("Focus") button |
 | Edit the market assets | Right-click the market card → Editar ativos ("Edit assets") |
-| Choose news sources | Right-click the news card |
+| Choose news country and sources | Right-click the news card → País ("Country") and the source list |
 | Show/hide market or news | Right-click anywhere → Mostrar mercado financeiro / Mostrar notícias |
 
 ## Data sources
