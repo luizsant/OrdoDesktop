@@ -5,6 +5,7 @@ Inspirado no "Desktop Organizer" do 360 Total Security. Não move nem apaga
 arquivos: só agrupa visualmente o conteúdo de ~/Área de trabalho em caixas
 por categoria, atualizando sozinho quando algo muda.
 """
+import gzip
 import json
 import os
 import re
@@ -14,6 +15,10 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+import webbrowser
+import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
 import gi
 
@@ -140,6 +145,23 @@ window.org-window { background-color: transparent; }
 .wx-day-min { color: rgba(255,255,255,0.5); font-size: 8.5pt; }
 .wx-icon { color: #ffd76a; }
 
+.card-title { color: rgba(255,255,255,0.55); font-size: 8pt; font-weight: 700; letter-spacing: 1px; }
+.card-meta { color: rgba(255,255,255,0.40); font-size: 8pt; }
+.mk-name { color: #ffffff; font-size: 9.5pt; font-weight: 600; }
+.mk-sub { color: rgba(255,255,255,0.45); font-size: 7.5pt; }
+.mk-val { color: #ffffff; font-size: 9.5pt; }
+.mk-chg { font-size: 8.5pt; font-weight: 700; border-radius: 6px; padding: 1px 6px; }
+.mk-up { color: #5fe0a0; background-color: rgba(62,207,142,0.16); }
+.mk-down { color: #ff8a8a; background-color: rgba(255,92,92,0.16); }
+.mk-flat { color: rgba(255,255,255,0.7); background-color: rgba(255,255,255,0.08); }
+.mk-ind { color: rgba(255,255,255,0.80); font-size: 8.5pt; }
+.mk-ind-val { color: #ffffff; font-size: 10pt; font-weight: 600; }
+.news-row { border-radius: 8px; padding: 6px 6px; }
+.news-row:hover { background-color: rgba(255,255,255,0.08); }
+.news-title { color: #ffffff; font-size: 9.5pt; }
+.news-meta { color: rgba(255,255,255,0.45); font-size: 7.5pt; }
+.news-src { color: #9fb2ff; font-size: 7.5pt; font-weight: 700; }
+
 .sticky { border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
 .sticky-head { border-radius: 14px 14px 0 0; padding: 4px 6px 4px 12px; }
 .sticky-date { font-size: 8pt; font-weight: 700; color: rgba(0,0,0,0.55); }
@@ -168,6 +190,26 @@ NOTE_COLORS = {
 }
 NOTE_COLOR_NAMES = {"amarelo": "Amarelo", "lilas": "Lilás", "azul": "Azul", "verde": "Verde", "rosa": "Rosa",
                     "cinza": "Cinza"}
+
+# Ativos do card de mercado: (símbolo no Yahoo Finance, nome exibido, tipo de valor)
+DEFAULT_ASSETS = [
+    ["^BVSP", "Ibovespa", "pts"], ["^GSPC", "S&P 500", "pts"], ["^IXIC", "Nasdaq", "pts"],
+    ["BRL=X", "Dólar", "brl"], ["EURBRL=X", "Euro", "brl"], ["BTC-BRL", "Bitcoin", "brl"],
+    ["PETR4.SA", "Petrobras", "brl"], ["VALE3.SA", "Vale", "brl"], ["ITUB4.SA", "Itaú", "brl"],
+]
+# Indicadores do Banco Central (API SGS, oficial): código da série -> nome
+BCB_SERIES = [(432, "Selic"), (4389, "CDI"), (13522, "IPCA 12m")]
+# Feeds RSS públicos de notícias
+NEWS_FEEDS = {
+    "infomoney": ("InfoMoney", "https://www.infomoney.com.br/feed/"),
+    "valor": ("Valor", "https://valor.globo.com/rss/valor"),
+    "agenciabrasil": ("Agência Brasil", "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml"),
+    "g1": ("G1 Economia", "https://g1.globo.com/rss/g1/economia/"),
+    "cnn": ("CNN Brasil", "https://www.cnnbrasil.com.br/feed/"),
+    "exame": ("Exame", "https://exame.com/feed/"),
+    "moneytimes": ("Money Times", "https://www.moneytimes.com.br/feed/"),
+    "poder360": ("Poder360", "https://www.poder360.com.br/feed/"),
+}
 
 # Códigos WMO do Open-Meteo -> (descrição, ícone de dia, ícone de noite)
 WEATHER_CODES = {
@@ -216,6 +258,11 @@ def load_config():
     cfg.setdefault("show_hidden", False)
     cfg.setdefault("show_gadgets", True)
     cfg.setdefault("theme", "padrao")
+    cfg.setdefault("show_market", True)
+    cfg.setdefault("show_news", True)
+    cfg.setdefault("market_assets", DEFAULT_ASSETS)
+    cfg.setdefault("news_sources", ["infomoney", "valor", "agenciabrasil"])
+    cfg.setdefault("cards", {})  # posição dos cards de mercado/notícias
     cfg.setdefault("autostart", True)
     cfg.setdefault("note", "")
     cfg.setdefault("notes", [])
@@ -936,10 +983,43 @@ class GadgetPanel(Gtk.Box):
 
 
 
-def http_json(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "ordo-desktop"})
+def http_get(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (X11; Linux) ordo-desktop",
+                                               "Accept-Encoding": "gzip"})
     with urllib.request.urlopen(req, timeout=15) as r:
-        return json.load(r)
+        data = r.read()
+    return gzip.decompress(data) if data[:2] == b"\x1f\x8b" else data
+
+
+def http_json(url):
+    return json.loads(http_get(url))
+
+
+def run_async(work, done):
+    """Roda work() numa thread e entrega o resultado (ou a exceção) a done() na thread do GTK."""
+    def target():
+        try:
+            res, err = work(), None
+        except Exception as e:  # rede fora, timeout, formato inesperado
+            res, err = None, e
+        GLib.idle_add(lambda: done(res, err) and False)
+    threading.Thread(target=target, daemon=True).start()
+
+
+def fmt_num(v, dec=2):
+    """Número no formato brasileiro: 169.186,42"""
+    return f"{v:,.{dec}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def ago(dt):
+    mins = int((datetime.now(timezone.utc) - dt).total_seconds() // 60)
+    if mins < 1:
+        return "agora"
+    if mins < 60:
+        return f"há {mins} min"
+    if mins < 24 * 60:
+        return f"há {mins // 60} h"
+    return dt.astimezone().strftime("%d/%m %H:%M")
 
 
 class WeatherWidget(Gtk.EventBox):
@@ -1230,6 +1310,385 @@ class StickyNote(Gtk.Window):
         self.app.remove_note(self)
 
 
+class InfoCard(Gtk.Window):
+    """Card solto na área de trabalho (mercado, notícias): arrastável, posição salva."""
+
+    WIDTH = 380
+
+    def __init__(self, app, key, title):
+        super().__init__(title=f"{APP_NAME} — {title}")
+        self.app, self.key = app, key
+        setup_transparent(self)
+        ev = Gtk.EventBox()
+        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.box.get_style_context().add_class("clock-card")
+        self.box.set_size_request(self.WIDTH, -1)
+        head = Gtk.Box(spacing=8)
+        t = Gtk.Label(label=title.upper(), xalign=0)
+        t.get_style_context().add_class("card-title")
+        self.meta = Gtk.Label(xalign=1)
+        self.meta.get_style_context().add_class("card-meta")
+        head.pack_start(t, True, True, 0)
+        head.pack_end(self.meta, False, False, 0)
+        self.box.pack_start(head, False, False, 0)
+        ev.add(self.box)
+        ev.connect("button-press-event", self.on_press)
+        self.mover = WindowDragger(ev, self, "move", "grab")
+        self.add(ev)
+        ev.show_all()
+        g = self.app.cfg["cards"].get(key)
+        if g:
+            self.move(g["x"], g["y"])
+        self.connect("configure-event", self.on_configure)
+        self.loading = False
+
+    def on_press(self, _w, ev):
+        if ev.button == 1 and ev.type == Gdk.EventType.BUTTON_PRESS:
+            self.mover.begin(ev)
+        elif ev.button == 3:
+            menu = self.card_menu()
+            menu.append(Gtk.SeparatorMenuItem())
+            for mi in self.app.build_menu().get_children():  # menu geral logo abaixo
+                mi.get_parent().remove(mi)
+                menu.append(mi)
+            menu.show_all()
+            menu.attach_to_widget(self, None)
+            menu.popup_at_pointer(ev)
+            self._menu = menu
+        return True
+
+    def card_menu(self):
+        menu = Gtk.Menu()
+        mi = Gtk.MenuItem(label="Atualizar agora")
+        mi.connect("activate", lambda _m: self.refresh())
+        menu.append(mi)
+        return menu
+
+    def on_configure(self, _w, ev):
+        self.app.cfg["cards"][self.key] = {"x": ev.x, "y": ev.y}
+        self.app.schedule_save()
+        return False
+
+    def refresh(self):
+        raise NotImplementedError
+
+
+class Sparkline(Gtk.DrawingArea):
+    def __init__(self, points, up):
+        super().__init__()
+        self.points, self.up = [p for p in points if p is not None], up
+        self.set_size_request(64, 20)
+        self.set_valign(Gtk.Align.CENTER)
+        self.connect("draw", self.on_draw)
+
+    def on_draw(self, _w, cr):
+        pts = self.points
+        if len(pts) < 2:
+            return
+        w, h = self.get_allocated_width(), self.get_allocated_height()
+        lo, hi = min(pts), max(pts)
+        span = (hi - lo) or 1
+        cr.set_line_width(1.6)
+        cr.set_source_rgba(*((0.37, 0.88, 0.63, 1) if self.up else (1, 0.54, 0.54, 1)))
+        for i, v in enumerate(pts):
+            x = i * (w - 2) / (len(pts) - 1) + 1
+            y = h - 2 - (v - lo) / span * (h - 4)
+            (cr.move_to if i == 0 else cr.line_to)(x, y)
+        cr.stroke()
+
+
+class MarketCard(InfoCard):
+    """Índices, moedas e ações (Yahoo Finance) + Selic/CDI/IPCA (Banco Central)."""
+
+    REFRESH_S = 5 * 60
+
+    def __init__(self, app):
+        super().__init__(app, "market", "Mercado")
+        self.grid = Gtk.Grid(column_spacing=10, row_spacing=7)
+        self.grid.set_margin_top(6)
+        self.box.pack_start(self.grid, False, False, 0)
+        sep = Gtk.Box()
+        sep.get_style_context().add_class("gadget-sep")
+        self.box.pack_start(sep, False, False, 0)
+        self.ind = Gtk.Box(homogeneous=True)
+        self.box.pack_start(self.ind, False, False, 0)
+        src = Gtk.Label(label="Fontes: Yahoo Finance · Banco Central · atraso de até 15 min", xalign=0)
+        src.get_style_context().add_class("card-meta")
+        src.set_margin_top(6)
+        self.box.pack_start(src, False, False, 0)
+        self.box.show_all()
+        self.meta.set_text("carregando…")
+        self.refresh()
+        GLib.timeout_add_seconds(self.REFRESH_S, lambda: self.refresh() or True)
+
+    def card_menu(self):
+        menu = super().card_menu()
+        mi = Gtk.MenuItem(label="Editar ativos…")
+        mi.connect("activate", lambda _m: self.edit_assets())
+        menu.append(mi)
+        return menu
+
+    def refresh(self):
+        if self.loading:
+            return
+        self.loading = True
+        assets = [list(a) for a in self.app.cfg["market_assets"]]
+
+        def work():
+            quotes = []
+            for sym, name, kind in assets:
+                try:
+                    quotes.append((name, sym, kind, *self.fetch_quote(sym)))
+                except Exception:
+                    quotes.append((name, sym, kind, None, None, []))
+            inds = []
+            for code, name in BCB_SERIES:
+                try:
+                    v = http_json(f"https://api.bcb.gov.br/dados/serie/bcdata.sgs.{code}/dados/ultimos/1?formato=json")
+                    inds.append((name, float(v[0]["valor"])))
+                except Exception:
+                    inds.append((name, None))
+            return quotes, inds
+
+        run_async(work, self.show_data)
+
+    @staticmethod
+    def fetch_quote(sym):
+        """(preço, fechamento anterior, pontos do gráfico do dia)."""
+        if sym.endswith("-BRL"):
+            # O Yahoo não cota cripto em reais; a AwesomeAPI (pública, brasileira) cota.
+            hist = http_json(f"https://economia.awesomeapi.com.br/json/daily/{urllib.parse.quote(sym)}/24")
+            last = float(hist[0]["bid"])
+            prev = last / (1 + float(hist[0]["pctChange"]) / 100)
+            return last, prev, [float(h["bid"]) for h in reversed(hist)]
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}?range=1d&interval=15m"
+        r = http_json(url)["chart"]["result"][0]
+        m = r["meta"]
+        return m.get("regularMarketPrice"), m.get("chartPreviousClose"), r["indicators"]["quote"][0].get("close") or []
+
+    def show_data(self, res, err):
+        self.loading = False
+        if err or not res:
+            self.meta.set_text("sem conexão")
+            return
+        quotes, inds = res
+        for c in self.grid.get_children():
+            c.destroy()
+        for row, (name, sym, kind, price, prev, closes) in enumerate(quotes):
+            names = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            n = Gtk.Label(label=name, xalign=0)
+            n.get_style_context().add_class("mk-name")
+            sub = Gtk.Label(label=sym.replace(".SA", "").replace("=X", ""), xalign=0)
+            sub.get_style_context().add_class("mk-sub")
+            names.pack_start(n, False, False, 0)
+            names.pack_start(sub, False, False, 0)
+            names.set_hexpand(True)
+            self.grid.attach(names, 0, row, 1, 1)
+            if price is None:
+                na = Gtk.Label(label="indisponível", xalign=1)
+                na.get_style_context().add_class("mk-sub")
+                self.grid.attach(na, 1, row, 3, 1)
+                continue
+            chg = (price / prev - 1) * 100 if prev else 0.0
+            up = chg >= 0
+            self.grid.attach(Sparkline(closes, up), 1, row, 1, 1)
+            val = Gtk.Label(label=(fmt_num(price, 0) if kind == "pts" else f"R$ {fmt_num(price)}"
+                                   if kind == "brl" else fmt_num(price)), xalign=1)
+            val.get_style_context().add_class("mk-val")
+            self.grid.attach(val, 2, row, 1, 1)
+            pill = Gtk.Label(label=f"{'+' if chg > 0 else ''}{fmt_num(chg)}%", xalign=0.5, width_chars=7)
+            pill.get_style_context().add_class("mk-chg")
+            pill.get_style_context().add_class("mk-up" if chg > 0.004 else "mk-down" if chg < -0.004 else "mk-flat")
+            pill.set_valign(Gtk.Align.CENTER)
+            self.grid.attach(pill, 3, row, 1, 1)
+        for c in self.ind.get_children():
+            c.destroy()
+        for name, v in inds:
+            col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            a = Gtk.Label(label=name)
+            a.get_style_context().add_class("mk-ind")
+            b = Gtk.Label(label=f"{fmt_num(v)}%" if v is not None else "—")
+            b.get_style_context().add_class("mk-ind-val")
+            col.pack_start(a, False, False, 0)
+            col.pack_start(b, False, False, 0)
+            self.ind.pack_start(col, True, True, 0)
+        self.box.show_all()
+        self.meta.set_text(f"atualizado {time.strftime('%H:%M')}")
+        self.resize(1, 1)
+
+    def edit_assets(self):
+        dlg = Gtk.Dialog(title="Ativos do card de mercado", modal=True)
+        dlg.add_buttons("Restaurar padrão", 1, "Cancelar", Gtk.ResponseType.CANCEL, "Salvar", Gtk.ResponseType.OK)
+        dlg.set_default_size(460, 420)
+        area = dlg.get_content_area()
+        area.set_border_width(12)
+        area.set_spacing(8)
+        help_ = Gtk.Label(xalign=0, wrap=True, label=(
+            "Um ativo por linha, no formato  SÍMBOLO = Nome.\n"
+            "Ações da B3: PETR4, VALE3, BBAS3… (o .SA é colocado sozinho). "
+            "Índices: ^BVSP, ^GSPC. Moedas: BRL=X (dólar), EURBRL=X. Cripto: BTC-BRL, ETH-BRL."))
+        area.pack_start(help_, False, False, 0)
+        view = Gtk.TextView(monospace=True)
+        view.get_buffer().set_text("\n".join(f"{s} = {n}" for s, n, _k in self.app.cfg["market_assets"]))
+        sc = Gtk.ScrolledWindow(vexpand=True)
+        sc.add(view)
+        area.pack_start(sc, True, True, 0)
+        dlg.show_all()
+        resp = dlg.run()
+        if resp == 1:
+            self.app.cfg["market_assets"] = [list(a) for a in DEFAULT_ASSETS]
+        elif resp == Gtk.ResponseType.OK:
+            buf = view.get_buffer()
+            assets = []
+            for line in buf.get_text(buf.get_start_iter(), buf.get_end_iter(), False).splitlines():
+                if not line.strip():
+                    continue
+                sym, _, name = line.partition("=")
+                sym = sym.strip().upper()
+                if re.fullmatch(r"[A-Z]{4}\d{1,2}F?", sym):
+                    sym += ".SA"
+                kind = "pts" if sym.startswith("^") else "brl" if sym.endswith((".SA", "BRL=X", "-BRL")) or sym == "BRL=X" \
+                    else "num"
+                assets.append([sym, name.strip() or sym.replace(".SA", ""), kind])
+            if assets:
+                self.app.cfg["market_assets"] = assets
+        dlg.destroy()
+        if resp in (1, Gtk.ResponseType.OK):
+            self.app.schedule_save()
+            self.refresh()
+
+
+class NewsCard(InfoCard):
+    """Manchetes dos feeds RSS escolhidos, mais recentes primeiro."""
+
+    REFRESH_S = 15 * 60
+    MAX_ITEMS = 7
+    PER_SOURCE = 3  # para uma fonte muito ativa não ocupar o card inteiro
+
+    def __init__(self, app):
+        super().__init__(app, "news", "Notícias")
+        self.list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1)
+        self.list.set_margin_top(4)
+        self.box.pack_start(self.list, False, False, 0)
+        self.box.show_all()
+        self.meta.set_text("carregando…")
+        self.refresh()
+        GLib.timeout_add_seconds(self.REFRESH_S, lambda: self.refresh() or True)
+
+    def card_menu(self):
+        menu = super().card_menu()
+        menu.append(Gtk.SeparatorMenuItem())
+        for key, (name, _url) in NEWS_FEEDS.items():
+            mi = Gtk.CheckMenuItem(label=name)
+            mi.set_active(key in self.app.cfg["news_sources"])
+            mi.connect("toggled", lambda m, k=key: self.toggle_source(k, m.get_active()))
+            menu.append(mi)
+        return menu
+
+    def toggle_source(self, key, on):
+        srcs = [k for k in self.app.cfg["news_sources"] if k != key] + ([key] if on else [])
+        self.app.cfg["news_sources"] = [k for k in NEWS_FEEDS if k in srcs]
+        self.app.schedule_save()
+        self.refresh()
+
+    @staticmethod
+    def parse_date(text):
+        if not text:
+            return None
+        try:
+            dt = parsedate_to_datetime(text)
+            # RFC 822 com fuso "-0000" (ex.: Valor) vem sem fuso, mas o horário é UTC.
+            return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        except (TypeError, ValueError):
+            pass
+        try:
+            dt = datetime.fromisoformat(text.strip().replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return dt if dt.tzinfo else dt.astimezone()  # ISO sem fuso: horário local
+
+    def refresh(self):
+        if self.loading:
+            return
+        self.loading = True
+        sources = list(self.app.cfg["news_sources"])
+
+        def work():
+            items = []
+            for key in sources:
+                name, url = NEWS_FEEDS[key]
+                try:
+                    root = ET.fromstring(http_get(url))
+                except Exception:
+                    continue
+                feed = []
+                for it in root.iter("item"):
+                    title = (it.findtext("title") or "").strip()
+                    link = (it.findtext("link") or "").strip()
+                    if title and link.startswith("http"):
+                        feed.append((self.parse_date(it.findtext("pubDate")), name, title, link))
+                feed.sort(key=lambda x: x[0] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+                items += feed[: self.PER_SOURCE]
+            items.sort(key=lambda x: x[0] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+            return items[: self.MAX_ITEMS]
+
+        run_async(work, self.show_items)
+
+    def show_items(self, items, err):
+        self.loading = False
+        for c in self.list.get_children():
+            c.destroy()
+        if not self.app.cfg["news_sources"]:
+            self.meta.set_text("")
+            self.add_info("Nenhuma fonte escolhida — botão direito para escolher.")
+        elif err or not items:
+            self.meta.set_text("sem conexão")
+            self.add_info("Não foi possível carregar as notícias agora.")
+        else:
+            for dt, src, title, link in items:
+                ev = Gtk.EventBox()
+                row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+                row.get_style_context().add_class("news-row")
+                t = Gtk.Label(label=title, xalign=0, wrap=True, max_width_chars=48, lines=2,
+                              ellipsize=Pango.EllipsizeMode.END)
+                t.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+                t.get_style_context().add_class("news-title")
+                meta = Gtk.Box(spacing=6)
+                s = Gtk.Label(label=src.upper())
+                s.get_style_context().add_class("news-src")
+                when = Gtk.Label(label=ago(dt) if dt else "")
+                when.get_style_context().add_class("news-meta")
+                meta.pack_start(s, False, False, 0)
+                meta.pack_start(when, False, False, 0)
+                row.pack_start(t, False, False, 0)
+                row.pack_start(meta, False, False, 0)
+                ev.add(row)
+                ev.set_tooltip_text(f"{title}\n\nClique para abrir no navegador")
+                ev.connect("button-press-event", self.on_item_press, link)
+                ev.connect("realize", lambda w: w.get_window().set_cursor(
+                    Gdk.Cursor.new_from_name(w.get_display(), "pointer")))
+                self.list.pack_start(ev, False, False, 0)
+            self.meta.set_text(f"atualizado {time.strftime('%H:%M')}")
+        self.list.show_all()
+        self.resize(1, 1)
+
+    def add_info(self, text):
+        lbl = Gtk.Label(label=text, xalign=0, wrap=True)
+        lbl.get_style_context().add_class("news-meta")
+        lbl.set_margin_top(8)
+        lbl.set_margin_bottom(8)
+        self.list.pack_start(lbl, False, False, 0)
+
+    def on_item_press(self, _w, ev, link):
+        if ev.button == 1 and ev.type == Gdk.EventType.BUTTON_PRESS:
+            try:
+                Gio.AppInfo.launch_default_for_uri(link, None)
+            except GLib.Error:
+                webbrowser.open(link)
+            return True
+        return False  # botão direito sobe para o menu do card
+
+
 class ClockCard(Gtk.Window):
     def __init__(self, app):
         super().__init__(title=f"{APP_NAME} — Relógio")
@@ -1342,6 +1801,9 @@ class OrganizerApp(Gtk.Application):
             self.apply_hide_native(True)
         if self.cfg["show_clock"]:
             self.toggle_clock(True)
+        self.market = self.news = None
+        self.toggle_market(self.cfg["show_market"])
+        self.toggle_news(self.cfg["show_news"])
         if self.cfg["note"].strip() and not self.cfg["notes"]:  # migra a antiga "nota rápida"
             self.new_note(text=self.cfg["note"], show=False)
             self.cfg["note"] = ""
@@ -1529,6 +1991,9 @@ class OrganizerApp(Gtk.Application):
             self.clock.set_visible(visible)
         for n in self.notes:
             n.set_visible(visible)
+        for card in (self.market, self.news):
+            if card:
+                card.set_visible(visible)
 
     def toggle_clock(self, show):
         self.cfg["show_clock"] = show
@@ -1544,6 +2009,46 @@ class OrganizerApp(Gtk.Application):
         elif not show and self.clock:
             self.clock.destroy()
             self.clock = None
+        self.schedule_save()
+
+    def _place_card(self, card, x_from_right, below_clock):
+        if card.key in self.cfg["cards"]:
+            return
+        wa = workarea()
+        y = wa.y + 24
+        if below_clock and self.clock:
+            self.clock.realize()
+            cx, cy = self.clock.get_position()
+            y = cy + self.clock.get_preferred_height()[1] + 16
+        card.move(wa.x + wa.width - x_from_right, y)
+
+    def toggle_market(self, show):
+        self.cfg["show_market"] = show
+        if show and not self.market:
+            self.market = MarketCard(self)
+            self.add_window(self.market)
+            self._place_card(self.market, 840, False)
+            if self.visible:
+                self.market.show()
+        elif not show and self.market:
+            self.market.destroy()
+            self.market = None
+        self.schedule_save()
+
+    def toggle_news(self, show):
+        self.cfg["show_news"] = show
+        if show and not self.news:
+            self.news = NewsCard(self)
+            self.add_window(self.news)
+            if "news" not in self.cfg["cards"]:
+                wa = workarea()
+                # Abaixo do card de mercado (que ainda está carregando, então a altura é estimada).
+                self.news.move(wa.x + wa.width - 840, wa.y + 24 + (470 if self.market else 0))
+            if self.visible:
+                self.news.show()
+        elif not show and self.news:
+            self.news.destroy()
+            self.news = None
         self.schedule_save()
 
     def apply_hide_native(self, hide):
@@ -1621,6 +2126,8 @@ class OrganizerApp(Gtk.Application):
         check("Mostrar relógio", self.cfg["show_clock"], self.toggle_clock)
         check("Mostrar segundos", self.cfg["show_seconds"], self.set_seconds)
         check("Mostrar gadgets abaixo do relógio", self.cfg["show_gadgets"], self.set_gadgets)
+        check("Mostrar mercado financeiro", self.cfg["show_market"], self.toggle_market)
+        check("Mostrar notícias", self.cfg["show_news"], self.toggle_news)
         check("Ocultar ícones nativos do Zorin", self.cfg["hide_native"], self.apply_hide_native)
         check("Mostrar arquivos ocultos", self.cfg["show_hidden"], self.set_show_hidden)
         check("Iniciar com o sistema", self.cfg["autostart"], self.set_autostart)

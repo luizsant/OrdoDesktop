@@ -36,6 +36,11 @@ está na sua Área de Trabalho em caixas por categoria e as mantém atualizadas 
   - uso de CPU, memória e disco;
   - atalhos: reorganizar, captura de tela, calculadora, terminal, Downloads, lixeira,
     bloquear tela, não perturbe, timer de foco, recolher caixas, monitor e nova nota.
+- **Card de mercado**: Ibovespa, S&P 500, Nasdaq, dólar, euro, Bitcoin e ações (Petrobras, Vale e
+  Itaú por padrão — editável), com variação do dia e minigráfico, além de Selic, CDI e IPCA 12 meses
+  do Banco Central.
+- **Card de notícias**: últimas manchetes de InfoMoney, Valor, Agência Brasil, G1, CNN Brasil,
+  Exame, Money Times e Poder360 (você escolhe as fontes); clique na manchete para abrir no navegador.
 - **Notas adesivas** coloridas, salvas automaticamente.
 - **Sem ícone na bandeja**: tudo é configurado pelo botão direito sobre qualquer caixa,
   o relógio ou uma nota.
@@ -96,6 +101,23 @@ padrão do Ubuntu) e Gtk4 Desktop Icons NG.
 | Trocar um arquivo de caixa | Arrastar para outra caixa, ou botão direito → Mover para a caixa |
 | Escolher a cidade do clima | Botão direito no clima |
 | Duração do timer de foco | Botão direito no botão Foco |
+| Editar os ativos do mercado | Botão direito no card de mercado → Editar ativos |
+| Escolher as fontes de notícias | Botão direito no card de notícias |
+| Mostrar/ocultar mercado ou notícias | Botão direito em qualquer card → Mostrar mercado financeiro / Mostrar notícias |
+
+## Fontes de dados
+
+Todas públicas, gratuitas e sem cadastro nem chave de API:
+
+| Dado | Fonte |
+| --- | --- |
+| Clima | [Open-Meteo](https://open-meteo.com) |
+| Índices, ações e moedas | Endpoint público de gráficos do Yahoo Finance (não oficial, pode ter atraso de até 15 min) |
+| Cripto em reais | [AwesomeAPI](https://docs.awesomeapi.com.br) |
+| Selic, CDI, IPCA | [API SGS do Banco Central](https://dadosabertos.bcb.gov.br) (oficial) |
+| Notícias | Feeds RSS públicos de cada veículo; o Ordo mostra só a manchete e o link para a matéria original |
+
+Os dados de mercado são apenas informativos e não constituem recomendação de investimento.
 
 ## Contribuindo
 

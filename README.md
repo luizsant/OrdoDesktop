@@ -39,6 +39,11 @@ on your Desktop into boxes by category and keeps them up to date in real time.
   - CPU, memory and disk usage;
   - shortcuts: rearrange, screenshot, calculator, terminal, Downloads, trash, lock screen,
     do not disturb, focus timer, collapse boxes, system monitor and new note.
+- **Market card**: Ibovespa, S&P 500, Nasdaq, dollar, euro, Bitcoin and stocks (Petrobras, Vale,
+  Itaú by default — editable), with the day's change and a mini chart, plus Selic, CDI and
+  12-month IPCA from the Brazilian Central Bank.
+- **News card**: latest headlines from InfoMoney, Valor, Agência Brasil, G1, CNN Brasil, Exame,
+  Money Times and Poder360 (pick your sources); click a headline to open it in the browser.
 - **Sticky notes** in several colors, saved automatically.
 - **No tray icon**: everything is configured by right-clicking any box, the clock or a note.
 - Starts with your session and hides the native desktop icons while it is running
@@ -98,6 +103,23 @@ Native desktop icons supported by the hide option: Zorin Desktop Icons, Desktop 
 | Move a file to another box | Drag it into the other box, or right-click → Mover para a caixa ("Move to box") |
 | Choose the weather city | Right-click the weather |
 | Focus timer duration | Right-click the Foco ("Focus") button |
+| Edit the market assets | Right-click the market card → Editar ativos ("Edit assets") |
+| Choose news sources | Right-click the news card |
+| Show/hide market or news | Right-click anywhere → Mostrar mercado financeiro / Mostrar notícias |
+
+## Data sources
+
+All public, free and without sign-up or API keys:
+
+| Data | Source |
+| --- | --- |
+| Weather | [Open-Meteo](https://open-meteo.com) |
+| Indices, stocks and currencies | Yahoo Finance public chart endpoint (unofficial, may be delayed up to 15 min) |
+| Crypto in BRL | [AwesomeAPI](https://docs.awesomeapi.com.br) |
+| Selic, CDI, IPCA | [Brazilian Central Bank SGS API](https://dadosabertos.bcb.gov.br) (official) |
+| News | Public RSS feeds of each outlet; Ordo shows only headlines and links to the original article |
+
+Market data is informational only and not investment advice.
 
 ## Contributing
 
