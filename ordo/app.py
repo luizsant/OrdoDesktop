@@ -9,15 +9,19 @@ from datetime import datetime
 if sys.platform.startswith("linux") and os.environ.get("XDG_SESSION_TYPE") == "wayland":
     os.environ.setdefault("QT_QPA_PLATFORM", "xcb")  # posicionar janelas exige X11 (XWayland)
 
-from PySide6.QtCore import QFileInfo, QFileSystemWatcher, QMimeData, QPoint, QSize, Qt, QTimer, QUrl
+from PySide6.QtCore import QFileInfo, QFileSystemWatcher, QMimeData, QSize, Qt, QTimer, QUrl
 from PySide6.QtGui import QAction, QActionGroup, QColor, QFont, QIcon, QImageReader, QPainter, QPixmap
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFileIconProvider, QHBoxLayout, QInputDialog,
-                               QLabel, QListView, QListWidget, QListWidgetItem, QMenu, QMessageBox, QStyle,
+                               QLabel, QListView, QListWidget, QListWidgetItem, QMenu, QStyle,
                                QStyledItemDelegate, QVBoxLayout, QWidget)
 
 from . import i18n, system
-from .catalog import APP_NAME, CAT_BY_KEY, CATEGORIES, HEADER_H, ICON_SIZE, THEMES, categorize
+from .cards import CARD_W, MarketCard, NewsCard
+from .clock import ClockCard
+from .notes import StickyNote
+from .widgets import DesktopWindow, Grip, error, workarea
+from .catalog import APP_NAME, CAT_BY_KEY, CATEGORIES, HEADER_H, ICON_SIZE, NOTE_COLORS, THEMES, categorize
 from .config import load_config, save_config
 from .i18n import LANGUAGES, _, fold
 
@@ -79,98 +83,6 @@ def scan_desktop(show_hidden=False):
             continue
         items.append(DesktopItem(os.path.join(folder, n)))
     return items
-
-
-def error(title, detail=""):
-    box = QMessageBox(QMessageBox.Warning, APP_NAME, title)
-    if detail:
-        box.setInformativeText(detail)
-    box.exec()
-
-
-def workarea():
-    return QApplication.primaryScreen().availableGeometry()
-
-
-# ---------------------------------------------------------------------------
-# Janela base: fica no fundo da tela, sem borda, arrastável e com posição salva
-# ---------------------------------------------------------------------------
-class DesktopWindow(QWidget):
-    SNAP = 8
-
-    def __init__(self, app, title):
-        super().__init__(None)
-        self.app = app
-        self.setWindowTitle(f"{APP_NAME} — {title}")
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        flags = Qt.FramelessWindowHint
-        if system.IS_LINUX:
-            # Tipo "área de trabalho": o gerenciador de janelas mantém atrás das janelas normais.
-            self.setAttribute(Qt.WA_X11NetWmWindowTypeDesktop)
-        else:
-            flags |= Qt.Tool | Qt.WindowStaysOnBottomHint  # Windows: fase 3 prende ao WorkerW
-        if os.environ.get("ORDO_TEST_ABOVE"):  # só para capturas de teste
-            flags = Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
-        self.setWindowFlags(flags)
-        self._drag = None
-
-    # arrastar pela área que chamar begin_drag()
-    def begin_drag(self, ev):
-        self._drag = (ev.globalPosition().toPoint(), self.pos())
-
-    def mouseMoveEvent(self, ev):
-        if self._drag:
-            start, origin = self._drag
-            p = origin + (ev.globalPosition().toPoint() - start)
-            wa = workarea()
-            x = min(max(round(p.x() / self.SNAP) * self.SNAP, wa.left()), wa.right() - 60)
-            y = min(max(round(p.y() / self.SNAP) * self.SNAP, wa.top()), wa.bottom() - HEADER_H)
-            self.move(x, y)
-        super().mouseMoveEvent(ev)
-
-    def mouseReleaseEvent(self, ev):
-        if self._drag:
-            self._drag = None
-            self.geometry_changed()
-        super().mouseReleaseEvent(ev)
-
-    def geometry_changed(self):
-        """Chamado depois de mover/redimensionar; cada janela grava onde precisa."""
-
-    def contextMenuEvent(self, ev):
-        self.app.main_menu().exec(ev.globalPos())
-
-
-class Grip(QWidget):
-    """Alça ◢ de redimensionar. Manual: o Mutter não redimensiona janelas tipo "área de trabalho"."""
-
-    def __init__(self, win, min_size=(160, HEADER_H + 60)):
-        super().__init__(win)
-        self.win, self.min_size, self.start = win, min_size, None
-        self.setFixedSize(16, 16)
-        self.setCursor(Qt.SizeFDiagCursor)
-
-    def mousePressEvent(self, ev):
-        if ev.button() == Qt.LeftButton:
-            self.start = (ev.globalPosition().toPoint(), self.win.size())
-
-    def mouseMoveEvent(self, ev):
-        if self.start:
-            p0, size = self.start
-            d = ev.globalPosition().toPoint() - p0
-            snap = DesktopWindow.SNAP
-            self.win.resize(max(self.min_size[0], round((size.width() + d.x()) / snap) * snap),
-                            max(self.min_size[1], round((size.height() + d.y()) / snap) * snap))
-
-    def mouseReleaseEvent(self, ev):
-        if self.start:
-            self.start = None
-            self.win.geometry_changed()
-
-    def paintEvent(self, _ev):
-        p = QPainter(self)
-        p.setPen(QColor(255, 255, 255, 90))
-        p.drawText(self.rect(), Qt.AlignRight | Qt.AlignBottom, "◢")
 
 
 # ---------------------------------------------------------------------------
@@ -434,71 +346,6 @@ def fence_style(theme, color):
 
 
 # ---------------------------------------------------------------------------
-# Card do relógio (visual próprio, não segue o estilo das caixas)
-# ---------------------------------------------------------------------------
-CARD_STYLE = """
-    QWidget#card { background: rgba(18,20,26,0.55); border: 1px solid rgba(255,255,255,0.09); border-radius: 18px; }
-    QLabel { color: white; }
-    QLabel#time { font-size: 46pt; font-weight: 300; }
-    QLabel#sec { color: rgba(255,255,255,0.55); font-size: 18pt; font-weight: 300; }
-    QLabel#date { color: rgba(255,255,255,0.85); font-size: 12pt; }
-    QLabel#extra { color: rgba(255,255,255,0.55); font-size: 9.5pt; }
-"""
-
-
-class ClockCard(DesktopWindow):
-    def __init__(self, app):
-        super().__init__(app, _("Relógio"))
-        self.card = QWidget(self)
-        self.card.setObjectName("card")
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.addWidget(self.card)
-        lay = QVBoxLayout(self.card)
-        lay.setContentsMargins(26, 14, 26, 16)
-        lay.setSpacing(2)
-        row = QHBoxLayout()
-        row.addStretch()
-        self.time_lbl = QLabel(objectName="time")
-        self.sec_lbl = QLabel(objectName="sec")
-        row.addWidget(self.time_lbl)
-        row.addWidget(self.sec_lbl, 0, Qt.AlignBottom)
-        row.addStretch()
-        lay.addLayout(row)
-        self.date_lbl = QLabel(objectName="date", alignment=Qt.AlignCenter)
-        self.extra_lbl = QLabel(objectName="extra", alignment=Qt.AlignCenter)
-        lay.addWidget(self.date_lbl)
-        lay.addWidget(self.extra_lbl)
-        self.setStyleSheet(CARD_STYLE)
-        g = app.cfg["clock"]
-        if "x" in g:
-            self.move(g["x"], g["y"])
-        self.tick()
-        self.timer = QTimer(self, interval=1000, timeout=self.tick)
-        QTimer.singleShot(1000 - int(time.time() * 1000) % 1000, self.timer.start)
-
-    def tick(self):
-        now = datetime.now()
-        self.time_lbl.setText(now.strftime("%H:%M"))
-        self.sec_lbl.setVisible(self.app.cfg["show_seconds"])
-        self.sec_lbl.setText(now.strftime("%S"))
-        self.date_lbl.setText(i18n.long_date(now))
-        h = now.hour
-        greet = _("Bom dia") if 5 <= h < 12 else _("Boa tarde") if 12 <= h < 18 else _("Boa noite")
-        user = self.app.first_name
-        self.extra_lbl.setText(f"{greet}{', ' + user if user else ''} · {_('semana {n}', n=now.isocalendar()[1])}"
-                               f" · {_('{n} itens na área de trabalho', n=self.app.item_count)}")
-
-    def mousePressEvent(self, ev):
-        if ev.button() == Qt.LeftButton:
-            self.begin_drag(ev)
-
-    def geometry_changed(self):
-        self.app.cfg["clock"].update(x=self.x(), y=self.y())
-        self.app.schedule_save()
-
-
-# ---------------------------------------------------------------------------
 # Aplicativo
 # ---------------------------------------------------------------------------
 class OrdoApp(QApplication):
@@ -510,7 +357,8 @@ class OrdoApp(QApplication):
                                                                               "ordo-desktop.svg"))))
         self.cfg = load_config()
         i18n.set_language(self.cfg["language"])
-        self.fences, self.clock = {}, None
+        self.fences, self.clock, self.notes, self.cards = {}, None, [], {}
+        self.stack_news = False
         self.query, self.all_items, self.item_count = "", [], 0
         self.first_name = self.real_first_name()
         self.save_timer = QTimer(self, singleShot=True, interval=600, timeout=self.save_now)
@@ -533,6 +381,11 @@ class OrdoApp(QApplication):
         self.watcher.directoryChanged.connect(lambda _p: self.refresh_timer.start())
         if self.cfg["show_clock"]:
             self.toggle_clock(True)
+        for data in self.cfg["notes"]:
+            self.show_note(data)
+        for key in ("market", "news"):
+            if self.cfg[f"show_{key}"]:
+                self.toggle_card(key, True)
         first_run = not self.cfg["boxes"]
         self.refresh()
         if first_run:
@@ -578,9 +431,20 @@ class OrdoApp(QApplication):
                 del self.fences[key]
         if self.clock:
             self.clock.tick()
+        if self.query:  # arquivo novo/renomeado durante uma busca: reaplica o filtro
+            self.set_query(self.query)
 
     def matches(self, item):
         return not self.query or self.query in fold(item.display_name) or self.query in fold(item.name)
+
+    def set_query(self, text):
+        self.query = fold(text.strip())
+        for f in self.fences.values():
+            f.apply_filter()
+        found = sorted((i for i in self.all_items if self.query and self.matches(i)),
+                       key=lambda i: (not fold(i.display_name).startswith(self.query), i.sort_key))
+        if self.clock:
+            self.clock.show_results(self.query, found)
 
     def auto_layout(self):
         """Caixas em colunas a partir da esquerda; relógio no canto direito."""
@@ -601,12 +465,45 @@ class OrdoApp(QApplication):
             fence.geom().update(x=x, y=y, w=col_w, h=h, collapsed=False)
             fence.apply_geometry()
             y += h + gap
+        right = wa.right() - margin
         if self.clock:
             self.clock.adjustSize()
             w = max(self.clock.width(), 380)
-            self.clock.move(wa.right() - margin - w, wa.top() + margin)
+            right -= w
+            self.clock.move(right, wa.top() + margin)
             self.clock.geometry_changed()
+            right -= gap
+        # À esquerda do relógio: mercado em cima, notícias ocupando o resto da coluna.
+        y = wa.top() + margin
+        market, news = self.cards.get("market"), self.cards.get("news")
+        if market:
+            g = market.geom()
+            g.pop("w", None)
+            g.pop("h", None)
+            g.update(x=right - CARD_W, y=y)
+            market.move(right - CARD_W, y)
+            market.fit()
+            y += market.height() + gap
+        if news:
+            news.geom().update(x=right - CARD_W, y=y, w=CARD_W, h=max(200, bottom - y))
+            news.move(right - CARD_W, y)
+            news.fit()
+        self.stack_news = bool(market and news)
         self.schedule_save()
+
+    def restack_cards(self):
+        """Depois do Reorganizar, mantém Notícias logo abaixo do Mercado quando este muda de altura."""
+        market, news = self.cards.get("market"), self.cards.get("news")
+        if not (self.stack_news and market and news):
+            return
+        y = market.y() + market.height() + 16
+        news.geom().update(x=news.x(), y=y, h=max(200, workarea().bottom() - 24 - y))
+        news.move(news.x(), y)
+        news.fit()
+        self.schedule_save()
+
+    def cards_moved_by_user(self):
+        self.stack_news = False  # o usuário posicionou à mão: respeita
 
     def place_new(self, fence):
         wa = workarea()
@@ -676,6 +573,60 @@ class OrdoApp(QApplication):
             self.clock = None
         self.schedule_save()
 
+    # ---- notas ----
+    def show_note(self, data):
+        note = StickyNote(self, data)
+        self.notes.append(note)
+        note.show()
+        return note
+
+    def new_note(self, near=None):
+        wa = workarea()
+        if near:
+            x, y = near.x() + 28, near.y() + 28
+        else:
+            x, y = wa.center().x() - 130 + 24 * (len(self.cfg["notes"]) % 6), wa.top() + wa.height() // 3
+        colors = list(NOTE_COLORS)
+        data = {"id": int(time.time() * 1000) % 10**10, "title": "", "text": "",
+                "color": colors[len(self.cfg["notes"]) % len(colors)],
+                "created": datetime.now().strftime("%d/%m/%Y"), "x": x, "y": y, "w": 260, "h": 220}
+        self.cfg["notes"].append(data)
+        self.schedule_save()
+        note = self.show_note(data)
+        note.activateWindow()
+        note.title.setFocus()
+
+    def remove_note(self, note):
+        self.cfg["notes"] = [n for n in self.cfg["notes"] if n is not note.data]
+        self.notes.remove(note)
+        note.close()
+        note.deleteLater()
+        self.schedule_save()
+
+    # ---- cards de mercado e notícias ----
+    def toggle_card(self, key, show):
+        self.cfg[f"show_{key}"] = show
+        card = self.cards.get(key)
+        if show and not card:
+            card = self.cards[key] = (MarketCard if key == "market" else NewsCard)(self)
+            if "x" not in card.geom():
+                wa = workarea()
+                y = wa.top() + 24 + (0 if key == "market" else 500)
+                card.move(wa.right() - 24 - 405 - 16 - CARD_W, y)
+            card.fit()
+            card.show()
+        elif not show and card:
+            card.close()
+            card.deleteLater()
+            del self.cards[key]
+        self.schedule_save()
+
+    def set_gadgets(self, on):
+        self.cfg["show_gadgets"] = on
+        if self.clock:
+            self.clock.set_gadgets(on)
+        self.schedule_save()
+
     def apply_hide_native(self, hide):
         self.cfg["hide_native"] = hide
         if hide:
@@ -699,6 +650,8 @@ class OrdoApp(QApplication):
         self.cfg["theme"] = theme
         for f in self.fences.values():
             f.apply_theme(theme)
+        for card in self.cards.values():  # o card do relógio mantém o visual próprio
+            card.apply_theme(theme)
         self.schedule_save()
 
     def set_language(self, choice):
@@ -726,9 +679,14 @@ class OrdoApp(QApplication):
         self.schedule_save()
 
     # ---- menu geral (botão direito) ----
+    @staticmethod
+    def make_menu():
+        return QMenu()
+
     def main_menu(self):
         menu = QMenu()
         menu.addAction(_("Reorganizar automaticamente"), self.auto_layout)
+        menu.addAction(_("Nova nota"), self.new_note)
         menu.addAction(_("Recolher todas"), lambda: self.set_collapsed_all(True))
         menu.addAction(_("Expandir todas"), lambda: self.set_collapsed_all(False))
         menu.addAction(_("Abrir pasta da Área de Trabalho"), lambda: system.open_path(system.desktop_dir()))
@@ -753,6 +711,9 @@ class OrdoApp(QApplication):
 
         check(_("Mostrar relógio"), "show_clock", self.toggle_clock)
         check(_("Mostrar segundos"), "show_seconds")
+        check(_("Mostrar gadgets abaixo do relógio"), "show_gadgets", self.set_gadgets)
+        check(_("Mostrar mercado financeiro"), "show_market", lambda on: self.toggle_card("market", on))
+        check(_("Mostrar notícias"), "show_news", lambda on: self.toggle_card("news", on))
         check(_("Ocultar ícones nativos da área de trabalho"), "hide_native", self.apply_hide_native)
         check(_("Mostrar arquivos ocultos"), "show_hidden")
         check(_("Iniciar com o sistema"), "autostart")

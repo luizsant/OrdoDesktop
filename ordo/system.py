@@ -235,3 +235,168 @@ def load_json(path):
             return json.load(f)
     except (OSError, ValueError):
         return None
+
+
+# ---------------------------------------------------------------------------
+# Uso do sistema (gadgets do relógio)
+# ---------------------------------------------------------------------------
+class Stats:
+    """CPU (variação desde a última leitura), memória e disco da pasta pessoal."""
+
+    def __init__(self):
+        self.prev = self._cpu_times()
+
+    @staticmethod
+    def _cpu_times():
+        """(total, ocioso) acumulados desde o boot."""
+        if IS_WINDOWS:
+            import ctypes
+            from ctypes import wintypes
+            idle, kernel, user = wintypes.FILETIME(), wintypes.FILETIME(), wintypes.FILETIME()
+            ctypes.windll.kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user))
+            ft = lambda f: (f.dwHighDateTime << 32) | f.dwLowDateTime  # noqa: E731
+            return ft(kernel) + ft(user), ft(idle)  # o tempo de kernel já inclui o ocioso
+        with open("/proc/stat") as f:
+            vals = list(map(int, f.readline().split()[1:]))
+        return sum(vals), vals[3] + vals[4]
+
+    def cpu(self):
+        total, idle = self._cpu_times()
+        pt, pi = self.prev
+        self.prev = (total, idle)
+        dt = total - pt
+        return 0.0 if dt <= 0 else max(0.0, min(1.0, 1 - (idle - pi) / dt))
+
+    @staticmethod
+    def mem():
+        """(fração usada, GB usados, GB totais)."""
+        if IS_WINDOWS:
+            import ctypes
+
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                            ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                            ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                            ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                            ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+
+            m = MEMORYSTATUSEX(dwLength=ctypes.sizeof(MEMORYSTATUSEX))
+            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(m))
+            total, used = m.ullTotalPhys, m.ullTotalPhys - m.ullAvailPhys
+            return used / total, used / 2**30, total / 2**30
+        info = {}
+        with open("/proc/meminfo") as f:
+            for line in f:
+                k, v = line.split(":", 1)
+                info[k] = int(v.split()[0])
+        total = info["MemTotal"]
+        used = total - info.get("MemAvailable", info["MemFree"])
+        return used / total, used / 2**20, total / 2**20
+
+    @staticmethod
+    def disk():
+        """(fração usada, GB livres) do disco da pasta pessoal."""
+        import shutil
+        u = shutil.disk_usage(os.path.expanduser("~"))
+        return u.used / u.total, u.free / 1e9
+
+
+# ---------------------------------------------------------------------------
+# Atalhos dos gadgets
+# ---------------------------------------------------------------------------
+def spawn(*argv):
+    flags = 0x08000000 if IS_WINDOWS else 0  # CREATE_NO_WINDOW: sem janela de console piscando
+    kw = {"creationflags": flags} if IS_WINDOWS else {"start_new_session": True}
+    subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **kw)
+
+
+def screenshot():
+    if IS_WINDOWS:
+        os.startfile("ms-screenclip:")  # Ferramenta de Captura (recorte)
+    else:
+        spawn("xdotool", "key", "Print")  # abre a interface de captura do GNOME
+
+
+def calculator():
+    spawn("calc.exe") if IS_WINDOWS else spawn("gnome-calculator")
+
+
+def terminal():
+    if IS_WINDOWS:
+        import shutil
+        spawn("wt.exe") if shutil.which("wt.exe") else spawn("cmd.exe", "/c", "start", "cmd.exe")
+    else:
+        import shutil
+        spawn(next((t for t in ("gnome-terminal", "x-terminal-emulator", "konsole", "xterm") if shutil.which(t)),
+                   "gnome-terminal"))
+
+
+def system_monitor():
+    spawn("taskmgr.exe") if IS_WINDOWS else spawn("gnome-system-monitor")
+
+
+def open_trash():
+    if IS_WINDOWS:
+        spawn("explorer.exe", "shell:RecycleBinFolder")
+    else:
+        spawn("gio", "open", "trash:///")
+
+
+def trash_count():
+    if IS_WINDOWS:
+        import ctypes
+
+        class SHQUERYRBINFO(ctypes.Structure):
+            _fields_ = [("cbSize", ctypes.c_ulong), ("i64Size", ctypes.c_longlong), ("i64NumItems", ctypes.c_longlong)]
+
+        info = SHQUERYRBINFO(cbSize=ctypes.sizeof(SHQUERYRBINFO))
+        if ctypes.windll.shell32.SHQueryRecycleBinW(None, ctypes.byref(info)) == 0:
+            return int(info.i64NumItems)
+        return 0
+    try:
+        out = subprocess.run(["gio", "info", "-a", "trash::item-count", "trash:///"], capture_output=True,
+                             text=True, timeout=5).stdout
+        m = re.search(r"item-count:\s*(\d+)", out)
+        return int(m.group(1)) if m else 0
+    except (OSError, subprocess.SubprocessError):
+        return 0
+
+
+def lock_screen():
+    if IS_WINDOWS:
+        import ctypes
+        ctypes.windll.user32.LockWorkStation()
+        return
+    r = subprocess.run(["gdbus", "call", "--session", "--dest", "org.gnome.ScreenSaver", "--object-path",
+                        "/org/gnome/ScreenSaver", "--method", "org.gnome.ScreenSaver.Lock"], capture_output=True)
+    if r.returncode != 0:
+        spawn("loginctl", "lock-session")
+
+
+def dnd_state():
+    """True/False no GNOME; None quando o sistema não permite ligar pelo app (Windows)."""
+    if IS_WINDOWS:
+        return None
+    try:
+        out = subprocess.run(["gsettings", "get", "org.gnome.desktop.notifications", "show-banners"],
+                             capture_output=True, text=True, timeout=5).stdout.strip()
+        return out == "false"
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def toggle_dnd():
+    if IS_WINDOWS:
+        os.startfile("ms-settings:notifications")  # o Windows não deixa outro app ligar o "Não incomodar"
+        return
+    on = dnd_state()
+    subprocess.run(["gsettings", "set", "org.gnome.desktop.notifications", "show-banners",
+                    "true" if on else "false"], timeout=5, check=False)
+
+
+def play_alarm():
+    if IS_WINDOWS:
+        import winsound
+        winsound.MessageBeep(winsound.MB_ICONASTERISK)
+    else:
+        spawn("canberra-gtk-play", "-i", "alarm-clock-elapsed")
