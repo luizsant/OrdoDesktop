@@ -6,6 +6,26 @@ Todas as mudanças relevantes do Ordo Desktop. O formato segue o
 
 ## [Não lançado]
 
+## [2.0.0] - 2026-10-29
+
+### Adicionado
+- **Versão para Windows 10 e 11**, com instalador `.exe` (sem administrador, em português, inglês
+  ou espanhol). As caixas ficam no nível da área de trabalho: atrás dos programas e visíveis com
+  "Mostrar área de trabalho". Lê também a Área de Trabalho pública e atalhos `.lnk`/`.url`, oculta
+  os ícones do Explorer enquanto está aberto e inicia com o Windows.
+- `ordo-desktop --quit` fecha a instância aberta com segurança (devolvendo os ícones nativos); o
+  desinstalador e as atualizações usam esse comando.
+- Erros inesperados vão para `ordo-error.log` na pasta de configuração, sem derrubar o app.
+
+### Alterado
+- Toda a interface foi refeita em Qt (PySide6), uma base única para Windows e Linux. O `.deb`
+  passa a ser `amd64` e traz o próprio Qt; a configuração existente continua valendo.
+- "Reorganizar" se adapta ao tamanho da tela: cards ao lado do relógio ou embaixo dele, e caixas
+  que não cabem ficam recolhidas. Em telas muito pequenas, mercado e notícias começam desligados.
+
+### Removido
+- A versão em GTK (`ordo_desktop.py`).
+
 ## [1.12.0] - 2026-10-29
 
 ### Adicionado

@@ -5,7 +5,7 @@
 <h1 align="center">Ordo Desktop</h1>
 
 <p align="center">
-  Desktop organizer for GNOME on Linux: auto-sorting boxes by file type,
+  Desktop organizer for <b>Windows</b> and <b>Linux</b>: auto-sorting boxes by file type,
   clock, weather, sticky notes and quick shortcuts.
 </p>
 
@@ -56,46 +56,47 @@ on your Desktop into boxes by category and keeps them up to date in real time.
 
 ## Installation
 
-### .deb package (Ubuntu, Zorin OS, Pop!_OS, Linux Mint with GNOME, Debian…)
+Download from [Releases](https://github.com/luizsant/OrdoDesktop/releases/latest):
 
-Download the latest `.deb` file from
-[Releases](https://github.com/luizsant/OrdoDesktop/releases/latest) and install it:
+### Windows 10 and 11
+
+Run `OrdoDesktop-<version>-setup.exe`. It installs for your user only (no administrator rights
+needed) and opens Ordo at the end. To uninstall, use **Settings → Apps → Ordo Desktop**.
+
+> The installer isn't code-signed yet, so Windows SmartScreen may show "Windows protected your PC".
+> Click **More info → Run anyway**.
+
+### Linux (Ubuntu, Zorin OS, Pop!_OS, Linux Mint, Debian…)
 
 ```bash
-sudo apt install ./ordo-desktop_*_all.deb
+sudo apt install ./ordo-desktop_*_amd64.deb
 ```
 
-Then open **Ordo Desktop** from the applications menu. On first launch it arranges the boxes by
-itself and enables starting with your session.
+Then open **Ordo Desktop** from the applications menu. To uninstall: close Ordo (right-click →
+**Quit**) and run `sudo apt remove ordo-desktop`.
 
-### From source
+On first launch Ordo arranges the boxes by itself and starts with your session from then on.
+Settings live in `%APPDATA%\OrdoDesktop\` (Windows) or `~/.config/ordo-desktop/` (Linux).
+
+### From source (Windows or Linux)
 
 ```bash
-sudo apt install python3-gi gir1.2-gtk-3.0
 git clone https://github.com/luizsant/OrdoDesktop.git
 cd OrdoDesktop
-python3 ordo_desktop.py
+python3 -m pip install PySide6
+python3 -m ordo
 ```
-
-### Uninstall
-
-Close Ordo (right-click → **Quit**) and run:
-
-```bash
-sudo apt remove ordo-desktop
-```
-
-Your settings live in `~/.config/ordo-desktop/`; delete that folder if you want a clean slate.
 
 ## Requirements
 
-- GNOME (tested on Zorin OS 18 / GNOME 46) in an **X11** session.
-  On Wayland, Ordo runs through XWayland, still experimental.
-- Python 3, PyGObject and GTK 3 (already installed on most GNOME distros).
-- Optional: `xdotool` (Screenshot button), `libnotify-bin` (focus timer notification).
+- **Windows 10 or 11** (64-bit).
+- **Linux** 64-bit with Python 3.9+ (Ubuntu 20.04+, Debian 11+, Mint 20+, Zorin 16+). Tested on
+  Zorin OS 18 (GNOME 46). Works best on X11; on Wayland it runs through XWayland. The `.deb` brings
+  its own Qt — nothing else to install.
+- Optional on Linux: `xdotool` (Screenshot button).
 
-Native desktop icons supported by the hide option: Zorin Desktop Icons, Desktop Icons NG
-(DING, Ubuntu's default) and Gtk4 Desktop Icons NG.
+The "hide native desktop icons" option works with Windows Explorer and, on Linux, with Zorin
+Desktop Icons, Desktop Icons NG (DING, Ubuntu's default) and Gtk4 Desktop Icons NG.
 
 ## Quick guide
 

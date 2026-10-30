@@ -12,46 +12,68 @@ terminal.
 
 ## Preparando o ambiente
 
-O projeto é um único arquivo Python com GTK 3, sem dependências além do PyGObject:
+O Ordo é Python com Qt (PySide6) e roda igual no Windows e no Linux:
 
 ```bash
-sudo apt install python3-gi gir1.2-gtk-3.0
 git clone https://github.com/<seu-usuario>/OrdoDesktop.git
 cd OrdoDesktop
+python3 -m venv .venv
+.venv/bin/pip install PySide6        # no Windows: .venv\Scripts\pip install PySide6
+.venv/bin/python -m ordo
 ```
 
-Se o Ordo instalado estiver aberto, feche-o antes (botão direito → **Sair**): as duas cópias
-usam o mesmo identificador de aplicativo e só uma roda por vez.
+Se o Ordo instalado estiver aberto, feche-o antes (botão direito → **Sair**): só uma cópia roda
+por vez em cada usuário.
 
-```bash
-python3 ordo_desktop.py
-```
+### Onde fica cada coisa
+
+| Arquivo | O que faz |
+| --- | --- |
+| `ordo/app.py` | Aplicativo, caixas, menu geral, Reorganizar |
+| `ordo/clock.py` | Card do relógio: busca, clima, sistema, atalhos, timer |
+| `ordo/cards.py` | Cards de mercado e notícias |
+| `ordo/notes.py` | Notas adesivas |
+| `ordo/widgets.py` | Base das janelas de fundo de tela, alça de redimensionar, tarefas em segundo plano |
+| `ordo/system.py` | Tudo que muda entre Windows e Linux (pastas, abrir arquivos, ícones nativos, atalhos) |
+| `ordo/data.py` | Clima, cotações, indicadores e notícias (só biblioteca padrão) |
+| `ordo/catalog.py`, `ordo/i18n.py` | Categorias, estilos e as traduções (português, inglês, espanhol) |
+
+Texto novo na interface: escreva em português dentro de `_("…")` e acrescente a tradução em
+`TR["en"]` e `TR["es"]` no `ordo/i18n.py`.
 
 ### Testando sem mexer na sua configuração
 
-Use uma pasta de configuração separada. Copie o `user-dirs.dirs` junto, senão a Área de
-Trabalho vira `~/Desktop`:
+No Linux, use uma pasta de configuração separada (copie o `user-dirs.dirs` junto, senão a Área de
+Trabalho vira `~/Desktop`) e desligue a opção de ocultar ícones nativos:
 
 ```bash
-mkdir -p /tmp/ordo-teste && cp ~/.config/user-dirs.dirs /tmp/ordo-teste/
-XDG_CONFIG_HOME=/tmp/ordo-teste python3 ordo_desktop.py
+mkdir -p /tmp/ordo-teste/ordo-desktop && cp ~/.config/user-dirs.dirs /tmp/ordo-teste/
+echo '{"hide_native": false, "autostart": false}' > /tmp/ordo-teste/ordo-desktop/config.json
+XDG_CONFIG_HOME=/tmp/ordo-teste .venv/bin/python -m ordo
 ```
 
-Para ver as janelas por cima de tudo (útil para capturas de tela), adicione `ORG_TEST_ABOVE=1`.
+`ORDO_TEST_ABOVE=1` deixa as janelas por cima de tudo (útil para capturas de tela).
+`ORDO_SELFTEST="captura.png;10"` abre, fotografa a tela depois de 10 s, grava um diagnóstico em
+`captura.json` e fecha — é o que o CI usa.
 
-### Gerando o pacote .deb
+### Gerando os pacotes
 
-```bash
-./build-deb.sh 1.9.0
-sudo apt install ./ordo-desktop_1.9.0_all.deb
-```
+- **Linux (.deb):** `./build-deb.sh 2.0.0` → `ordo-desktop_2.0.0_amd64.deb` (baixa o PySide6 e
+  leva dentro do pacote).
+- **Windows (.exe):** no Windows, com Python 3.12, `pip install PySide6-Essentials pyinstaller pillow`
+  e o [Inno Setup 6](https://jrsoftware.org/isinfo.php); depois
+  `powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1 -Version 2.0.0`.
+
+O GitHub Actions faz os dois a cada envio: o workflow **Verificação** instala o `.deb` e abre o Ordo
+numa tela virtual, e o workflow **Windows** instala o `.exe` numa máquina Windows, fotografa a tela
+e desinstala (as capturas ficam nos artefatos da execução).
 
 ## Enviando um pull request
 
 1. Faça um fork e crie um branch a partir de `main` (`git checkout -b minha-melhoria`).
 2. Mantenha o estilo do código: PEP 8, linhas de até 120 caracteres, comentários e textos da
    interface em português.
-3. Confira que o arquivo compila: `python3 -m py_compile ordo_desktop.py`.
+3. Confira que o código passa na análise: `python3 -m pyflakes ordo packaging`.
 4. Teste a mudança rodando o app e descreva no PR o que mudou e como você testou. Para mudanças
    visuais, inclua uma captura de tela (sem arquivos pessoais aparecendo).
 5. Se a mudança for perceptível para quem usa, adicione uma linha em `CHANGELOG.md`, na seção
@@ -69,7 +91,7 @@ possa continuar a licenciar o projeto, incluindo a sua contribuição, nesses te
   Excluir vai sempre para a lixeira.
 - **Sempre devolver o desktop como estava**: se o Ordo ocultar algo (como os ícones nativos),
   precisa restaurar ao fechar, inclusive após travar.
-- **Leve e sem dependências pesadas**: um arquivo, GTK 3 e a biblioteca padrão do Python.
+- **Leve e sem dependências pesadas**: Qt (PySide6) e a biblioteca padrão do Python.
 - **Configuração pelo próprio desktop**: sem ícone na bandeja, tudo pelo botão direito.
 
 ## Publicando uma versão (mantenedores)

@@ -1,6 +1,7 @@
 name: Release
 
-# Ao enviar uma tag vX.Y.Z, gera o .deb e publica a Release com ele anexado.
+# Ao enviar uma tag vX.Y.Z: gera o .deb (Linux) e o instalador .exe (Windows, já testado numa máquina
+# Windows de verdade) e publica a Release com os dois anexados.
 on:
   push:
     tags: ["v*"]
@@ -13,15 +14,30 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Dependências de build (GTK e renderizador SVG para os ícones)
-        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-3.0 gir1.2-gdkpixbuf-2.0 librsvg2-common
-
-      - name: Gerar o pacote
+      - name: Gerar o pacote .deb
         run: ./build-deb.sh "${GITHUB_REF_NAME#v}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ordo-linux-deb
+          path: ordo-desktop_*_amd64.deb
 
+  windows:
+    uses: ./.github/workflows/windows.yml
+    with:
+      version: ${{ github.ref_name }}
+
+  publicar:
+    needs: [deb, windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: pacotes
+          merge-multiple: true
       - name: Publicar a Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ordo-desktop_*_all.deb
+          files: |
+            pacotes/*.deb
+            pacotes/*.exe
           generate_release_notes: true

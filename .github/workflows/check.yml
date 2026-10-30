@@ -6,16 +6,31 @@ on:
   pull_request:
 
 jobs:
-  check:
+  linux:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Dependências
-        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-3.0 gir1.2-gdkpixbuf-2.0 librsvg2-common
+      - name: Análise do código
+        run: |
+          python3 -m pip install -q --break-system-packages pyflakes
+          python3 -m pyflakes ordo packaging
+          python3 -m compileall -q ordo
 
-      - name: Compila
-        run: python3 -m py_compile ordo_desktop.py
+      - name: Gerar o .deb
+        run: ./build-deb.sh 0.0.0-ci && dpkg-deb --info ordo-desktop_0.0.0-ci_amd64.deb
 
-      - name: Gera o .deb
-        run: ./build-deb.sh 0.0.0-ci && dpkg-deb --info ordo-desktop_0.0.0-ci_all.deb
+      - name: Instalar o .deb e abrir o Ordo numa tela virtual
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb ./ordo-desktop_0.0.0-ci_amd64.deb
+          mkdir -p ~/Desktop/Pasta && touch ~/Desktop/exemplo.pdf ~/Desktop/planilha.xlsx
+          ORDO_SELFTEST="$PWD/linux.png;8" xvfb-run -a -s "-screen 0 1600x900x24" ordo-desktop
+          cat linux.json
+          python3 -c "import json,sys; d=json.load(open('linux.json')); sys.exit(0 if d['items']==3 and d['clock'] else 1)"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ordo-linux-teste
+          path: linux.*

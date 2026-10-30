@@ -26,7 +26,9 @@ from .catalog import APP_NAME, CAT_BY_KEY, CATEGORIES, HEADER_H, ICON_SIZE, NOTE
 from .config import load_config, save_config
 from .i18n import LANGUAGES, _, fold
 
-SERVER_NAME = "ordo-desktop-qt"
+import getpass  # noqa: E402
+
+SERVER_NAME = f"ordo-desktop-{getpass.getuser()}"  # uma instância por usuário
 ACCENT = "#7c8cff"
 
 
@@ -816,7 +818,8 @@ def main():
     # "ordo-desktop --quit" fecha a instância aberta com segurança (devolve os ícones nativos).
     # O desinstalador do Windows usa isso em vez de matar o processo.
     if "--quit" in sys.argv:
-        app = QApplication(sys.argv)
+        from PySide6.QtCore import QCoreApplication
+        app = QCoreApplication(sys.argv)  # sem tela: o desinstalador roda fora da sessão gráfica
         sock = QLocalSocket()
         sock.connectToServer(SERVER_NAME)
         if sock.waitForConnected(1000):

@@ -1,10 +1,11 @@
 name: Windows
 
 # Gera o executável e o instalador do Windows e testa numa máquina Windows de verdade.
-# Roda ao enviar para o branch qt-windows, manualmente, ou chamado pela Release.
+# Roda a cada envio para a main, em pull requests, manualmente, ou chamado pela Release.
 on:
   push:
-    branches: [qt-windows]
+    branches: [main]
+  pull_request:
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -28,7 +29,7 @@ jobs:
       - name: Gerar executável e instalador
         shell: pwsh
         run: |
-          $v = "${{ inputs.version }}"
+          $v = "${{ inputs.version }}".TrimStart("v")
           if (-not $v) { $v = "0.0.0-dev" }
           ./packaging/windows/build.ps1 -Version $v
 
