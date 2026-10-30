@@ -64,9 +64,11 @@ $p3 = Start-Process $exe -PassThru
 Start-Sleep 8
 $unins = "$env:LOCALAPPDATA\Programs\OrdoDesktop\unins000.exe"
 Start-Process $unins -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES" -Wait
-Start-Sleep 3
+# o desinstalador do Inno continua num processo temporário depois que este retorna
+for ($i = 0; $i -lt 30 -and (Test-Path $exe); $i++) { Start-Sleep 1 }
 Log "Desinstalador fechou o Ordo: $($p3.HasExited)"
 Log "Arquivos removidos: $(-not (Test-Path $exe))"
 $run = (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -ErrorAction SilentlyContinue).OrdoDesktop
 Log "Registro de início removido: $(-not $run)"
 Copy-Item "$env:APPDATA\OrdoDesktop\config.json" "$out\config.json" -ErrorAction SilentlyContinue
+Copy-Item "$env:APPDATA\OrdoDesktop\ordo-error.log" "$out\ordo-error.log" -ErrorAction SilentlyContinue

@@ -179,8 +179,8 @@ def launch_command():
 def set_autostart(enable):
     if IS_WINDOWS:
         import winreg
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0,
-                             winreg.KEY_SET_VALUE)
+        # CreateKey: em instalações novas a chave "Run" pode ainda não existir.
+        key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run")
         with key:
             if enable:
                 winreg.SetValueEx(key, "OrdoDesktop", 0, winreg.REG_SZ,

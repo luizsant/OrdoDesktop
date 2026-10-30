@@ -375,9 +375,10 @@ class OrdoApp(QApplication):
         return name.split(" ")[0] if name else ""
 
     def start(self):
-        if self.cfg["hide_native"]:
-            self.apply_hide_native(True)
-        system.set_autostart(self.cfg["autostart"])
+        try:
+            system.set_autostart(self.cfg["autostart"])
+        except OSError as e:  # sem permissão no registro/pasta: o resto do app funciona igual
+            log_error(f"iniciar com o sistema: {e}")
         self.watcher = QFileSystemWatcher(system.desktop_dirs(), self)
         self.watcher.directoryChanged.connect(lambda _p: self.refresh_timer.start())
         if self.cfg["show_clock"]:
@@ -391,6 +392,9 @@ class OrdoApp(QApplication):
         self.refresh()
         if first_run:
             self.auto_layout()
+        # Por último: se algo acima falhar, os ícones nativos continuam onde estavam.
+        if self.cfg["hide_native"]:
+            self.apply_hide_native(True)
 
     def quit_app(self):
         try:
@@ -734,6 +738,27 @@ MENU_STYLE = """
 """
 
 
+def log_error(text):
+    """Grava erros em ordo-error.log, na pasta de configuração (o app não tem console no Windows)."""
+    try:
+        os.makedirs(system.config_dir(), exist_ok=True)
+        with open(os.path.join(system.config_dir(), "ordo-error.log"), "a", encoding="utf-8") as f:
+            f.write(f"{datetime.now():%Y-%m-%d %H:%M:%S} {text}\n")
+    except OSError:
+        pass
+    print(text, file=sys.stderr)
+
+
+def install_error_handler(app):
+    """Erro inesperado não derruba o Ordo (nem deixa a área de trabalho sem ícones): registra e segue."""
+    import traceback
+
+    def hook(kind, value, tb):
+        log_error("".join(traceback.format_exception(kind, value, tb)))
+
+    sys.excepthook = hook
+
+
 def selftest(app, spec):
     """ORDO_SELFTEST="arquivo.png;segundos": captura a tela, grava um diagnóstico e fecha (usado no CI)."""
     path, _sep, secs = spec.partition(";")
@@ -788,7 +813,12 @@ def main():
         signal.signal(sig, lambda *_a: app.quit_app())
     tick = QTimer(app, interval=500, timeout=lambda: None)  # deixa o Python tratar sinais durante o loop do Qt
     tick.start()
-    app.start()
+    install_error_handler(app)
+    try:
+        app.start()
+    except Exception:  # noqa: BLE001 — falha ao abrir: registra, devolve os ícones e segue com o que abriu
+        sys.excepthook(*sys.exc_info())
+        app.restore_native()
     return app.exec()
 
 
