@@ -29,7 +29,8 @@ está na sua Área de Trabalho em caixas por categoria e as mantém atualizadas 
 - **Caixas automáticas**: Aplicativos, Pastas, PDFs, Documentos, Planilhas, Apresentações,
   Imagens, Vídeos, Áudio, Compactados, Instaladores e Outros. Uma caixa só aparece quando tem itens.
 - **Do seu jeito**: arraste as caixas pelo título, redimensione pelo canto ◢, recolha com clique
-  duplo e arraste um arquivo para outra caixa (a escolha fica salva).
+  duplo e arraste um arquivo para outra caixa (a escolha fica salva). As bordas são **magnéticas**:
+  grudam nas outras caixas e cards, sempre com o mesmo espaço de 16 px.
 - **4 estilos de caixa**: Padrão, Vidro claro, Contorno colorido e Preto compacto — os cards de
   mercado e notícias acompanham o estilo escolhido.
 - **Em português, inglês e espanhol**: segue o idioma do sistema ou o escolhido em Configurações → Idioma.

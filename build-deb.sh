@@ -2,7 +2,7 @@
 # Gera ordo-desktop_<versão>_amd64.deb com a base Qt (PySide6 embutido, usa o python3 do sistema).
 # O Ubuntu/Debian não empacotam o PySide6, por isso ele vai dentro do .deb, só com os módulos usados.
 set -e
-VER="${1:-2.0.0}"            # versão: argumento (usado pelo CI com a tag) ou padrão
+VER="${1:-2.0.1}"            # versão: argumento (usado pelo CI com a tag) ou padrão
 PYSIDE="6.9.3"               # manylinux_2_28: roda em Ubuntu 20.04+, Debian 11+, Mint 20+, Zorin 16+
 cd "$(dirname "$0")"
 B=build/ordo-desktop_${VER}_amd64

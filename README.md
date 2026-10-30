@@ -32,7 +32,8 @@ on your Desktop into boxes by category and keeps them up to date in real time.
 - **Automatic boxes**: Apps, Folders, PDFs, Documents, Spreadsheets, Presentations, Images,
   Videos, Audio, Archives, Installers and Other. A box only shows up when it has items.
 - **Your way**: drag boxes by their title, resize them from the ◢ corner, collapse them with a
-  double-click and drag a file into another box (your choice is remembered).
+  double-click and drag a file into another box (your choice is remembered). Edges are
+  **magnetic**: they snap to other boxes and cards with an even 16 px gap.
 - **4 box styles**: Default, Light glass, Colored outline and Compact black — the market and news
   cards follow the chosen style.
 - **Clock card** with the full date and, below it, the gadgets:
