@@ -126,10 +126,9 @@ class DesktopWindow(QWidget):
         if self._drag:
             start, origin = self._drag
             p = origin + (ev.globalPosition().toPoint() - start)
+            x, y = magnet_move(self, p.x(), p.y())
             wa = workarea()
-            x = min(max(round(p.x() / self.SNAP) * self.SNAP, wa.left()), wa.right() - 60)
-            y = min(max(round(p.y() / self.SNAP) * self.SNAP, wa.top()), wa.bottom() - HEADER_H)
-            self.move(x, y)
+            self.move(min(max(x, wa.left()), wa.right() - 60), min(max(y, wa.top()), wa.bottom() - HEADER_H))
         super().mouseMoveEvent(ev)
 
     def mouseReleaseEvent(self, ev):
@@ -149,6 +148,63 @@ if not system.IS_WINDOWS:
     del DesktopWindow.nativeEvent  # no Linux, evita uma chamada Python a cada evento do X11
 
 
+# ---------------------------------------------------------------------------
+# Encaixe magnético: bordas grudam nas das outras janelas e da tela, sempre com o mesmo espaço
+# ---------------------------------------------------------------------------
+GAP = 16      # espaço entre janelas (o mesmo do Reorganizar)
+MARGIN = 24   # distância das bordas da tela
+PULL = 14     # a partir de quantos pixels de distância a borda "puxa"
+NEAR = 120    # só alinha com janelas que estão perto no outro eixo
+
+
+def _others(win):
+    return [w.geometry() for w in QApplication.topLevelWidgets()
+            if w is not win and w.isVisible() and isinstance(w, DesktopWindow)]
+
+
+def _nearest(value, targets):
+    best = min(targets, key=lambda t: abs(t - value), default=None)
+    return best if best is not None and abs(best - value) <= PULL else None
+
+
+def _snap_axis(pos, size, lo, hi, others, horizontal, my_cross):
+    """Melhor posição num eixo: alinhar bordas, ficar ao lado com GAP, ou na margem da tela."""
+    cands = [lo + MARGIN, hi - MARGIN - size + 1]  # margens da tela
+    for o in others:
+        a0, a1 = (o.left(), o.right()) if horizontal else (o.top(), o.bottom())
+        c0, c1 = (o.top(), o.bottom()) if horizontal else (o.left(), o.right())
+        if c0 - NEAR > my_cross[1] or c1 + NEAR < my_cross[0]:
+            continue  # longe no outro eixo: não interfere
+        cands += [a0, a1 - size + 1,                 # alinhada pela esquerda/topo ou pela direita/base
+                  a1 + 1 + GAP, a0 - GAP - size]     # encostada do lado, com o espaço padrão
+    snapped = _nearest(pos, cands)
+    return snapped if snapped is not None else round(pos / DesktopWindow.SNAP) * DesktopWindow.SNAP
+
+
+def magnet_move(win, x, y):
+    wa, others, w, h = workarea(), _others(win), win.width(), win.height()
+    nx = _snap_axis(x, w, wa.left(), wa.right(), others, True, (y, y + h))
+    ny = _snap_axis(y, h, wa.top(), wa.bottom(), others, False, (nx, nx + w))
+    return nx, ny
+
+
+def magnet_resize(win, w, h):
+    """Redimensionar pelo canto: a borda direita/de baixo gruda nas das outras janelas e da tela."""
+    wa, others, x, y = workarea(), _others(win), win.x(), win.y()
+    right, bottom = x + w - 1, y + h - 1
+    rights = [wa.right() - MARGIN]
+    bottoms = [wa.bottom() - MARGIN]
+    for o in others:
+        if not (o.top() - NEAR > bottom or o.bottom() + NEAR < y):
+            rights += [o.right(), o.left() - GAP - 1]
+        if not (o.left() - NEAR > right or o.right() + NEAR < x):
+            bottoms += [o.bottom(), o.top() - GAP - 1]
+    r, b = _nearest(right, rights), _nearest(bottom, bottoms)
+    snap = DesktopWindow.SNAP
+    return (r - x + 1 if r is not None else round(w / snap) * snap,
+            b - y + 1 if b is not None else round(h / snap) * snap)
+
+
 class Grip(QWidget):
     """Alça ◢ de redimensionar. Manual: o Mutter não redimensiona janelas tipo "área de trabalho"."""
 
@@ -166,9 +222,8 @@ class Grip(QWidget):
         if self.start:
             p0, size = self.start
             d = ev.globalPosition().toPoint() - p0
-            snap = DesktopWindow.SNAP
-            self.win.resize(max(self.min_size[0], round((size.width() + d.x()) / snap) * snap),
-                            max(self.min_size[1], round((size.height() + d.y()) / snap) * snap))
+            w, h = magnet_resize(self.win, size.width() + d.x(), size.height() + d.y())
+            self.win.resize(max(self.min_size[0], w), max(self.min_size[1], h))
 
     def mouseReleaseEvent(self, ev):
         if self.start:

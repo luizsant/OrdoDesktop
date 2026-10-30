@@ -6,6 +6,17 @@ Todas as mudanças relevantes do Ordo Desktop. O formato segue o
 
 ## [Não lançado]
 
+## [2.0.1] - 2026-10-29
+
+### Corrigido
+- "Reorganizar" podia deixar caixas abaixo da tela. Agora usa todas as colunas que cabem, divide as
+  caixas entre elas de forma equilibrada (na ordem) e, se faltar altura, diminui as mais altas e só
+  em último caso recolhe as de baixo — tudo sempre visível, com 16 px entre as janelas.
+
+### Adicionado
+- Encaixe magnético: ao arrastar ou redimensionar, as bordas grudam nas das outras caixas, cards,
+  notas e relógio (alinhadas ou lado a lado, sempre com o mesmo espaço) e nas margens da tela.
+
 ## [2.0.0] - 2026-10-29
 
 ### Adicionado

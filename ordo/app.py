@@ -350,6 +350,76 @@ def fence_style(theme, color):
 
 # ---------------------------------------------------------------------------
 # Aplicativo
+def fence_height(count, col_w, rows_max=4):
+    per_row = max(1, (col_w - 30) // GRID_W)
+    return HEADER_H + 22 + min(max(1, -(-count // per_row)), rows_max) * 92
+
+
+def plan_columns(counts, left, top, right, bottom, gap, col_w_max=340, col_w_min=260):
+    """Posições (x, y, largura, altura, recolhida) das caixas, na ordem, em colunas que cabem entre left e
+    right e entre top e bottom. Usa o menor número de colunas em que tudo cabe; se nem com o máximo de
+    colunas couber, diminui as caixas mais altas (ficam com rolagem) e, por último, recolhe as de baixo."""
+    if not counts:
+        return []
+    avail_w, avail_h = right - left, bottom - top
+    max_cols = max(1, min(len(counts), (avail_w + gap) // (col_w_min + gap)))
+
+    def split(n, col_w):
+        """Divide a sequência em n colunas contíguas com a menor coluna mais alta (partição linear)."""
+        hs = [fence_height(c, col_w) for c in counts]
+        best = None
+        for cuts in _cut_points(len(hs), n):
+            cols, start = [], 0
+            for end in list(cuts) + [len(hs)]:
+                cols.append(list(range(start, end)))
+                start = end
+            tallest = max(sum(hs[i] for i in col) + gap * (len(col) - 1) for col in cols if col)
+            if best is None or tallest < best[0]:
+                best = (tallest, cols)
+        return best[0], best[1], hs
+
+    for n in range(1, max_cols + 1):
+        col_w = min(col_w_max, (avail_w - (n - 1) * gap) // n)
+        tallest, cols, hs = split(n, col_w)
+        if tallest <= avail_h:
+            break
+    # Ainda não cabe: encolhe a caixa mais alta de cada coluna (uma linha por vez) e depois recolhe.
+    out = [None] * len(counts)
+    # Sobra da divisão da largura: 1 px a mais nas primeiras colunas, para o espaço até o relógio/cards
+    # ficar exatamente igual ao espaço entre colunas.
+    spare = max(0, avail_w - len(cols) * col_w - (len(cols) - 1) * gap) if col_w < col_w_max else 0
+    x = left
+    for c, col in enumerate(cols):
+        cw = col_w + (1 if c < spare else 0)
+        heights = {i: hs[i] for i in col}
+        collapsed = set()
+        def total():  # noqa: E306
+            return sum(HEADER_H if i in collapsed else heights[i] for i in col) + gap * (len(col) - 1)
+        while total() > avail_h:
+            open_ = [i for i in col if i not in collapsed]
+            tall = max(open_, key=lambda i: heights[i], default=None)
+            if tall is not None and heights[tall] > fence_height(1, col_w, 1):
+                heights[tall] -= 92
+            elif open_:
+                collapsed.add(open_[-1])  # a de baixo vira só o título
+            else:
+                break
+        y = top
+        for i in col:
+            h = heights[i]
+            out[i] = (x, y, cw, h, i in collapsed)
+            y += (HEADER_H if i in collapsed else h) + gap
+        x += cw + gap
+    return out
+
+
+def _cut_points(n_items, n_cols):
+    """Todas as formas de cortar n_items em n_cols grupos contíguos não vazios (índices dos cortes)."""
+    from itertools import combinations
+    n_cols = min(n_cols, n_items)
+    return combinations(range(1, n_items), n_cols - 1)
+
+
 # ---------------------------------------------------------------------------
 class OrdoApp(QApplication):
     def __init__(self, argv):
@@ -403,6 +473,11 @@ class OrdoApp(QApplication):
             self.apply_hide_native(True)
 
     def quit_app(self):
+        # Primeiro deixa de responder como "instância aberta": um Ordo aberto logo em seguida não
+        # desiste achando que este ainda está rodando enquanto ele devolve os ícones nativos.
+        if getattr(self, "server", None):
+            self.server.close()
+            QLocalServer.removeServer(SERVER_NAME)
         try:
             self.save_now()
         except OSError as e:  # nunca deixar de devolver os ícones nativos por falha ao salvar
@@ -499,26 +574,13 @@ class OrdoApp(QApplication):
             news.fit()
         self.stack_news = bool(market and news)
         self.cards_below_clock = has_cards and not side and bool(self.clock)
-        # Caixas: colunas da esquerda até onde começam o relógio/cards.
-        x, y = wa.left() + margin, top
-        cols = max(1, (fences_right - x + gap) // (col_w + gap))
-        col = 0
-        for key, *_rest in CATEGORIES:
-            fence = self.fences.get(key)
-            if not fence:
-                continue
-            per_row = max(1, (col_w - 30) // GRID_W)
-            rows = min(max(1, -(-fence.list.count() // per_row)), 4)
-            h = HEADER_H + 22 + rows * 92
-            if y + h > bottom and y > top and col + 1 < cols:  # coluna cheia: passa para a próxima
-                col += 1
-                x += col_w + gap
-                y = top
-            # Sem mais colunas e sem espaço: a caixa fica recolhida (só o título); clique duplo expande.
-            collapsed = y + h > bottom and col + 1 >= cols and y > top
-            fence.geom().update(x=x, y=y, w=col_w, h=h, collapsed=collapsed)
+        # Caixas: no espaço à esquerda do relógio/cards, sempre inteiras dentro da tela.
+        fences = [self.fences[k] for k, *_r in CATEGORIES if k in self.fences]
+        for (fx, fy, fw, fh, collapsed), fence in zip(
+                plan_columns([f.list.count() for f in fences], wa.left() + margin, top, fences_right, bottom, gap),
+                fences):
+            fence.geom().update(x=fx, y=fy, w=fw, h=fh, collapsed=collapsed)
             fence.apply_geometry()
-            y += fence.height() + (8 if collapsed else gap)
         self.schedule_save()
 
     def restack_cards(self):
@@ -835,7 +897,7 @@ def main():
     if probe.waitForConnected(300):
         return 0
     QLocalServer.removeServer(SERVER_NAME)
-    server = QLocalServer(app)
+    server = app.server = QLocalServer(app)
     server.listen(SERVER_NAME)
 
     def on_client():
