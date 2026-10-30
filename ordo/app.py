@@ -473,6 +473,11 @@ class OrdoApp(QApplication):
             self.apply_hide_native(True)
 
     def quit_app(self):
+        # Primeiro deixa de responder como "instância aberta": um Ordo aberto logo em seguida não
+        # desiste achando que este ainda está rodando enquanto ele devolve os ícones nativos.
+        if getattr(self, "server", None):
+            self.server.close()
+            QLocalServer.removeServer(SERVER_NAME)
         try:
             self.save_now()
         except OSError as e:  # nunca deixar de devolver os ícones nativos por falha ao salvar
@@ -892,7 +897,7 @@ def main():
     if probe.waitForConnected(300):
         return 0
     QLocalServer.removeServer(SERVER_NAME)
-    server = QLocalServer(app)
+    server = app.server = QLocalServer(app)
     server.listen(SERVER_NAME)
 
     def on_client():
