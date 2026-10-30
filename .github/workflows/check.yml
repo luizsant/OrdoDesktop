@@ -17,6 +17,9 @@ jobs:
           python3 -m pyflakes ordo packaging
           python3 -m compileall -q ordo
 
+      - name: Bibliotecas gráficas (o build desenha os ícones com o Qt)
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libfontconfig1
+
       - name: Gerar o .deb
         run: ./build-deb.sh 0.0.0-ci && dpkg-deb --info ordo-desktop_0.0.0-ci_amd64.deb
 
