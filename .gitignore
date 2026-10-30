@@ -23,3 +23,8 @@ build/
 
 # Ferramentas
 .claude/
+
+# Windows (gerados no build)
+packaging/windows/ordo.ico
+dist/
+*.spec

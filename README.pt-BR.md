@@ -5,8 +5,8 @@
 <h1 align="center">Ordo Desktop</h1>
 
 <p align="center">
-  Organizador de área de trabalho para Linux com GNOME: caixas automáticas por tipo de arquivo,
-  relógio, clima, notas adesivas e atalhos rápidos.
+  Organizador de área de trabalho para <b>Windows</b> e <b>Linux</b>: caixas automáticas por tipo
+  de arquivo, relógio, clima, notas adesivas e atalhos rápidos.
 </p>
 
 <p align="center">
@@ -55,46 +55,48 @@ está na sua Área de Trabalho em caixas por categoria e as mantém atualizadas 
 
 ## Instalação
 
-### Pacote .deb (Ubuntu, Zorin OS, Pop!_OS, Linux Mint com GNOME, Debian…)
+Baixe em [Releases](https://github.com/luizsant/OrdoDesktop/releases/latest):
 
-Baixe o arquivo `.deb` mais recente em
-[Releases](https://github.com/luizsant/OrdoDesktop/releases/latest) e instale:
+### Windows 10 e 11
+
+Rode o `OrdoDesktop-<versão>-setup.exe`. Ele instala só para o seu usuário (não pede
+administrador) e abre o Ordo no final. Para desinstalar, use **Configurações → Aplicativos → Ordo
+Desktop**.
+
+> O instalador ainda não tem assinatura digital, então o SmartScreen do Windows pode mostrar "O
+> Windows protegeu o computador". Clique em **Mais informações → Executar assim mesmo**.
+
+### Linux (Ubuntu, Zorin OS, Pop!_OS, Linux Mint, Debian…)
 
 ```bash
-sudo apt install ./ordo-desktop_*_all.deb
+sudo apt install ./ordo-desktop_*_amd64.deb
 ```
 
-Depois abra **Ordo Desktop** pelo menu de aplicativos. Na primeira execução ele organiza as caixas
-sozinho e passa a iniciar com o sistema.
+Depois abra **Ordo Desktop** pelo menu de aplicativos. Para desinstalar: feche o Ordo (botão direito
+→ **Sair**) e rode `sudo apt remove ordo-desktop`.
 
-### Direto do código-fonte
+Na primeira execução o Ordo organiza as caixas sozinho e passa a iniciar com o sistema. As
+configurações ficam em `%APPDATA%\OrdoDesktop\` (Windows) ou `~/.config/ordo-desktop/` (Linux).
+
+### Direto do código-fonte (Windows ou Linux)
 
 ```bash
-sudo apt install python3-gi gir1.2-gtk-3.0
 git clone https://github.com/luizsant/OrdoDesktop.git
 cd OrdoDesktop
-python3 ordo_desktop.py
+python3 -m pip install PySide6
+python3 -m ordo
 ```
-
-### Desinstalar
-
-Feche o Ordo (botão direito → **Sair**) e rode:
-
-```bash
-sudo apt remove ordo-desktop
-```
-
-Suas configurações ficam em `~/.config/ordo-desktop/`; apague essa pasta se quiser zerar tudo.
 
 ## Requisitos
 
-- GNOME (testado no Zorin OS 18 / GNOME 46) em sessão **X11**.
-  Em Wayland o Ordo roda via XWayland, ainda em caráter experimental.
-- Python 3, PyGObject e GTK 3 (já vêm instalados na maioria das distros com GNOME).
-- Opcionais: `xdotool` (botão Captura), `libnotify-bin` (aviso do timer de foco).
+- **Windows 10 ou 11** (64 bits).
+- **Linux** 64 bits com Python 3.9+ (Ubuntu 20.04+, Debian 11+, Mint 20+, Zorin 16+). Testado no
+  Zorin OS 18 (GNOME 46). Funciona melhor em X11; no Wayland roda via XWayland. O `.deb` traz o
+  próprio Qt — não precisa instalar mais nada.
+- Opcional no Linux: `xdotool` (botão Captura).
 
-Ícones nativos compatíveis com a opção de ocultar: Zorin Desktop Icons, Desktop Icons NG (DING,
-padrão do Ubuntu) e Gtk4 Desktop Icons NG.
+A opção "ocultar ícones nativos" funciona com o Explorer do Windows e, no Linux, com Zorin Desktop
+Icons, Desktop Icons NG (DING, padrão do Ubuntu) e Gtk4 Desktop Icons NG.
 
 ## Uso rápido
 

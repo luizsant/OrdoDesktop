@@ -1,0 +1,49 @@
+name: Windows
+
+# Gera o executável e o instalador do Windows e testa numa máquina Windows de verdade.
+# Roda a cada envio para a main, em pull requests, manualmente, ou chamado pela Release.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependências
+        run: pip install PySide6-Essentials pyinstaller pillow
+
+      - name: Gerar executável e instalador
+        shell: pwsh
+        run: |
+          $v = "${{ inputs.version }}".TrimStart("v")
+          if (-not $v) { $v = "0.0.0-dev" }
+          ./packaging/windows/build.ps1 -Version $v
+
+      - name: Testar no Windows (instalar, abrir, fotografar, desinstalar)
+        shell: pwsh
+        run: ./packaging/windows/selftest.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ordo-windows-instalador
+          path: dist/*.exe
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ordo-windows-teste
+          path: selftest/
