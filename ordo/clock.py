@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 
 from PySide6.QtCore import QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QIcon, QPainter
+from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget,
                                QListWidgetItem, QMenu, QProgressBar, QToolButton, QVBoxLayout, QWidget)
 
@@ -75,13 +75,23 @@ def tinted(name, size, color):
     return pm
 
 
+def glyph_pixmap(glyph, size, color="#ffffff"):
+    """Desenha um símbolo (ou emoji) como ícone, para sistemas sem tema de ícones (Windows)."""
+    pm = QPixmap(size, size)
+    pm.fill(Qt.transparent)
+    p = QPainter(pm)
+    f = p.font()
+    f.setPixelSize(int(size * 0.82))
+    p.setFont(f)
+    p.setPen(QColor(color))
+    p.drawText(pm.rect(), Qt.AlignCenter, glyph)
+    p.end()
+    return pm
+
+
 def themed(label, name, size, glyphs, color="#ffd76a"):
     """Põe no QLabel o ícone do tema (Linux) ou, sem tema, o símbolo equivalente (Windows)."""
-    pm = tinted(name, size, color)
-    if pm:
-        label.setPixmap(pm)
-    else:
-        label.setText(glyphs.get(name, "•"))
+    label.setPixmap(tinted(name, size, color) or glyph_pixmap(glyphs.get(name, "•"), size, color))
 
 
 def sep():
@@ -285,20 +295,12 @@ class GadgetPanel(QWidget):
 
     @staticmethod
     def set_icon(button, name):
-        pm = tinted(name, 22, "#ffffff")
-        if pm is None:  # Windows: sem tema de ícones, usa um símbolo
-            button.setText(f"{GLYPHS.get(name, '•')}\n{button.text().split(chr(10))[-1]}")
-            button.setToolButtonStyle(Qt.ToolButtonTextOnly)
-        else:
-            button.setIcon(QIcon(pm))
-            button.setIconSize(QSize(22, 22))
+        pm = tinted(name, 22, "#ffffff") or glyph_pixmap(GLYPHS.get(name, "•"), 22)  # Windows: símbolo
+        button.setIcon(QIcon(pm))
+        button.setIconSize(QSize(22, 22))
 
     def set_label(self, key, text):
-        b = self.btn[key]
-        if b.toolButtonStyle() == Qt.ToolButtonTextOnly:
-            b.setText(f"{b.text().split(chr(10))[0]}\n{text}")
-        else:
-            b.setText(text)
+        self.btn[key].setText(text)
 
     # ---- sistema ----
     def set_bar(self, key, frac, text):
@@ -424,6 +426,8 @@ class WeatherWidget(QWidget):
 
     def refresh(self):
         city = self.app.cfg["weather_city"]
+        self.temp.setVisible(bool(city))
+        self.icon.setVisible(bool(city))
         if not city:
             self.desc.setText(_("Defina sua cidade"))
             self.lines[0].setText(_("Botão direito aqui para escolher"))
