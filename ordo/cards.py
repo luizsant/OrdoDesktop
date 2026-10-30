@@ -94,7 +94,7 @@ class InfoCard(DesktopWindow):
         else:
             self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             self.content.adjustSize()
-            self.resize(CARD_W, self.content.sizeHint().height() + 70)
+            self.resize(self.app.cfg.get("card_width", CARD_W), self.content.sizeHint().height() + 70)
 
     def resizeEvent(self, ev):
         self.grip.move(self.width() - self.grip.width() - 6, self.height() - self.grip.height() - 4)
@@ -248,7 +248,7 @@ class MarketCard(InfoCard):
                                    objectName="csrc"))
         self.meta.setText(_("atualizado {t}", t=time.strftime("%H:%M")))
         QTimer.singleShot(0, self.fit)
-        QTimer.singleShot(50, self.app.restack_cards)
+        QTimer.singleShot(80, self.app.restack_cards)
 
     def edit_assets(self):
         dlg = QDialog()

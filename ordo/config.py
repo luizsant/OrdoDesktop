@@ -26,6 +26,7 @@ def load_config():
     if not isinstance(cfg.get("news_sources"), dict):
         cfg["news_sources"] = {}
     cfg.setdefault("cards", {})
+    cfg.setdefault("card_width", 432)  # o Reorganizar estreita os cards em telas pequenas
     cfg.setdefault("autostart", True)
     cfg.setdefault("notes", [])
     cfg.setdefault("weather_city", None)

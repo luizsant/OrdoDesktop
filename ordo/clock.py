@@ -159,6 +159,10 @@ class ClockCard(DesktopWindow):
         self.app.cfg["clock"].update(x=self.x(), y=self.y())
         self.app.schedule_save()
 
+    def resizeEvent(self, ev):
+        super().resizeEvent(ev)
+        QTimer.singleShot(0, self.app.restack_cards)  # o clima chegou e o card cresceu
+
     # ---- busca ----
     def show_results(self, query, items):
         while self.results.count():

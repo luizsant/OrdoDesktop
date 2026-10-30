@@ -359,7 +359,7 @@ class OrdoApp(QApplication):
         self.cfg = load_config()
         i18n.set_language(self.cfg["language"])
         self.fences, self.clock, self.notes, self.cards = {}, None, [], {}
-        self.stack_news = False
+        self.stack_news = self.cards_below_clock = False
         self.query, self.all_items, self.item_count = "", [], 0
         self.first_name = self.real_first_name()
         self.save_timer = QTimer(self, singleShot=True, interval=600, timeout=self.save_now)
@@ -381,6 +381,11 @@ class OrdoApp(QApplication):
             log_error(f"iniciar com o sistema: {e}")
         self.watcher = QFileSystemWatcher(system.desktop_dirs(), self)
         self.watcher.directoryChanged.connect(lambda _p: self.refresh_timer.start())
+        first_run = not self.cfg["boxes"]
+        wa = workarea()
+        if first_run and wa.width() - 48 - 380 - 16 - CARD_W - 16 < 340:
+            # Tela pequena: relógio + caixas já ocupam tudo; mercado e notícias ficam no menu para ligar.
+            self.cfg["show_market"] = self.cfg["show_news"] = False
         if self.cfg["show_clock"]:
             self.toggle_clock(True)
         for data in self.cfg["notes"]:
@@ -388,7 +393,6 @@ class OrdoApp(QApplication):
         for key in ("market", "news"):
             if self.cfg[f"show_{key}"]:
                 self.toggle_card(key, True)
-        first_run = not self.cfg["boxes"]
         self.refresh()
         if first_run:
             self.auto_layout()
@@ -452,11 +456,51 @@ class OrdoApp(QApplication):
             self.clock.show_results(self.query, found)
 
     def auto_layout(self):
-        """Caixas em colunas a partir da esquerda; relógio no canto direito."""
+        """Relógio no canto direito; mercado e notícias ao lado dele (ou embaixo, em telas estreitas);
+        caixas em colunas a partir da esquerda, no espaço que sobra."""
         wa = workarea()
         margin, gap, col_w = 24, 16, 340
-        x, y = wa.left() + margin, wa.top() + margin
-        bottom = wa.bottom() - margin
+        top, bottom = wa.top() + margin, wa.bottom() - margin
+        market, news = self.cards.get("market"), self.cards.get("news")
+        right = wa.right() - margin
+        clock_w = 0
+        if self.clock:
+            self.clock.adjustSize()
+            clock_w = max(self.clock.width(), 380)
+            right -= clock_w
+            self.clock.move(right, top)
+            self.clock.geometry_changed()
+        # Cards ao lado do relógio só se ainda couberem duas colunas de caixas; senão, embaixo do relógio.
+        has_cards = bool(market or news)
+        side = has_cards and wa.width() - 2 * margin - clock_w - gap - CARD_W - gap >= col_w
+        if has_cards and not side and self.clock:
+            card_x, card_w = right, clock_w
+            y = self.clock.y() + self.clock.height() + gap
+            fences_right = right - gap
+        else:
+            card_w = CARD_W
+            card_x = right - gap - CARD_W if self.clock else right - CARD_W
+            y = top
+            fences_right = (card_x if has_cards else right) - gap
+        self.cfg["card_width"] = card_w
+        if market:
+            g = market.geom()
+            g.pop("w", None)
+            g.pop("h", None)
+            g.update(x=card_x, y=y)
+            market.move(card_x, y)
+            market.fit()
+            y += market.height() + gap
+        if news:
+            news.geom().update(x=card_x, y=y, w=card_w, h=max(200, bottom - y))
+            news.move(card_x, y)
+            news.fit()
+        self.stack_news = bool(market and news)
+        self.cards_below_clock = has_cards and not side and bool(self.clock)
+        # Caixas: colunas da esquerda até onde começam o relógio/cards.
+        x, y = wa.left() + margin, top
+        cols = max(1, (fences_right - x + gap) // (col_w + gap))
+        col = 0
         for key, *_rest in CATEGORIES:
             fence = self.fences.get(key)
             if not fence:
@@ -464,51 +508,43 @@ class OrdoApp(QApplication):
             per_row = max(1, (col_w - 30) // GRID_W)
             rows = min(max(1, -(-fence.list.count() // per_row)), 4)
             h = HEADER_H + 22 + rows * 92
-            if y + h > bottom and y > wa.top() + margin:
+            if y + h > bottom and y > top and col + 1 < cols:  # coluna cheia: passa para a próxima
+                col += 1
                 x += col_w + gap
-                y = wa.top() + margin
-            fence.geom().update(x=x, y=y, w=col_w, h=h, collapsed=False)
+                y = top
+            # Sem mais colunas e sem espaço: a caixa fica recolhida (só o título); clique duplo expande.
+            collapsed = y + h > bottom and col + 1 >= cols and y > top
+            fence.geom().update(x=x, y=y, w=col_w, h=h, collapsed=collapsed)
             fence.apply_geometry()
-            y += h + gap
-        right = wa.right() - margin
-        if self.clock:
-            self.clock.adjustSize()
-            w = max(self.clock.width(), 380)
-            right -= w
-            self.clock.move(right, wa.top() + margin)
-            self.clock.geometry_changed()
-            right -= gap
-        # À esquerda do relógio: mercado em cima, notícias ocupando o resto da coluna.
-        y = wa.top() + margin
-        market, news = self.cards.get("market"), self.cards.get("news")
-        if market:
-            g = market.geom()
-            g.pop("w", None)
-            g.pop("h", None)
-            g.update(x=right - CARD_W, y=y)
-            market.move(right - CARD_W, y)
-            market.fit()
-            y += market.height() + gap
-        if news:
-            news.geom().update(x=right - CARD_W, y=y, w=CARD_W, h=max(200, bottom - y))
-            news.move(right - CARD_W, y)
-            news.fit()
-        self.stack_news = bool(market and news)
+            y += fence.height() + (8 if collapsed else gap)
         self.schedule_save()
 
     def restack_cards(self):
-        """Depois do Reorganizar, mantém Notícias logo abaixo do Mercado quando este muda de altura."""
+        """Depois do Reorganizar, mantém a pilha relógio → mercado → notícias quando algo muda de altura
+        (o clima e as cotações chegam depois e mudam o tamanho dos cards)."""
         market, news = self.cards.get("market"), self.cards.get("news")
-        if not (self.stack_news and market and news):
-            return
-        y = market.y() + market.height() + 16
-        news.geom().update(x=news.x(), y=y, h=max(200, workarea().bottom() - 24 - y))
-        news.move(news.x(), y)
-        news.fit()
-        self.schedule_save()
+        bottom = workarea().bottom() - 24
+        y = None
+        if self.cards_below_clock and self.clock:
+            y = self.clock.y() + self.clock.height() + 16
+            for card in (market, news):
+                if card:
+                    card.geom().update(x=card.x(), y=y)
+                    card.move(card.x(), y)
+                    if card is news:
+                        news.geom().update(h=max(200, bottom - y))
+                        news.fit()
+                    y += card.height() + 16
+        elif self.stack_news and market and news:
+            y = market.y() + market.height() + 16
+            news.geom().update(x=news.x(), y=y, h=max(200, bottom - y))
+            news.move(news.x(), y)
+            news.fit()
+        if y is not None:
+            self.schedule_save()
 
     def cards_moved_by_user(self):
-        self.stack_news = False  # o usuário posicionou à mão: respeita
+        self.stack_news = self.cards_below_clock = False  # o usuário posicionou à mão: respeita
 
     def place_new(self, fence):
         wa = workarea()
