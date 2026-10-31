@@ -35,7 +35,7 @@ Start-Process notepad.exe
 Start-Sleep 2
 
 # 4. Abre o Ordo com autoteste (ele mesmo fotografa a tela aos 25 s e fecha)
-$env:ORDO_SELFTEST = "$((Resolve-Path $out).Path)\ordo-self.png;25"
+$env:ORDO_SELFTEST = "$((Resolve-Path $out).Path)\ordo-self.png;35"
 $p = Start-Process $exe -PassThru
 Start-Sleep 15
 Shot "$out\tela-com-notepad.png"
@@ -46,7 +46,15 @@ $shell.MinimizeAll()
 Start-Sleep 3
 Shot "$out\tela-mostrar-area-de-trabalho.png"
 Log "Captura após minimizar tudo"
-$p.WaitForExit(30000) | Out-Null
+# "Mostrar área de trabalho" de verdade (botão do canto da barra / Win+D) usa outro mecanismo
+$shell.UndoMinimizeALL()
+Start-Sleep 2
+$shell.ToggleDesktop()
+Start-Sleep 3
+Shot "$out\tela-win-d.png"
+Log "Captura após Mostrar área de trabalho (Win+D)"
+$shell.ToggleDesktop()
+$p.WaitForExit(40000) | Out-Null
 Log "Ordo fechou sozinho após o autoteste: $($p.HasExited)"
 $env:ORDO_SELFTEST = ""
 $run = (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -ErrorAction SilentlyContinue).OrdoDesktop
