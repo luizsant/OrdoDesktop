@@ -471,6 +471,7 @@ def keep_at_bottom(message):
 
 desktop_in_front = False  # True enquanto a área de trabalho do Explorer é a janela em primeiro plano
 _hooks = []  # mantém vivos os ganchos de eventos (e seus callbacks) do Windows
+desktop_events = []  # classes que dispararam a troca (diagnóstico do autoteste)
 
 
 def watch_desktop(on_change):
@@ -491,6 +492,7 @@ def watch_desktop(on_change):
             return
         if is_desktop != desktop_in_front:
             desktop_in_front = is_desktop
+            desktop_events.append(buf.value)
             on_change(is_desktop)
 
     callback = proc_type(proc)

@@ -877,6 +877,7 @@ def selftest(app, spec):
         info = {"platform": sys.platform, "desktop_dirs": system.desktop_dirs(), "items": app.item_count,
                 "boxes": sorted(app.fences), "cards": sorted(app.cards), "notes": len(app.notes),
                 "native_hidden": app.cfg["native_disabled"], "clock": bool(app.clock),
+                "desktop_events": getattr(system, "desktop_events", []),
                 "windows": [w.windowTitle() for w in app.topLevelWidgets() if w.isVisible()]}
         with open(os.path.splitext(path)[0] + ".json", "w", encoding="utf-8") as f:
             json.dump(info, f, ensure_ascii=False, indent=2)
