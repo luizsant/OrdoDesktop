@@ -453,6 +453,9 @@ class OrdoApp(QApplication):
             log_error(f"iniciar com o sistema: {e}")
         if system.IS_WINDOWS and not os.environ.get("ORDO_TEST_ABOVE"):
             system.watch_desktop(self.on_desktop_shown)
+            # Mantém as janelas vinculadas à área de trabalho (o Qt desfaz o vínculo depois de exibi-las).
+            self.pin_timer = QTimer(self, interval=1000, timeout=self.repin_windows)
+            self.pin_timer.start()
         self.watcher = QFileSystemWatcher(system.desktop_dirs(), self)
         self.watcher.directoryChanged.connect(lambda _p: self.refresh_timer.start())
         first_run = not self.cfg["boxes"]
@@ -474,10 +477,22 @@ class OrdoApp(QApplication):
         if self.cfg["hide_native"]:
             self.apply_hide_native(True)
 
+    def desktop_windows(self):
+        return [w for w in self.topLevelWidgets() if isinstance(w, DesktopWindow) and w.isVisible()]
+
+    def repin_windows(self):
+        for w in self.desktop_windows():
+            hwnd = int(w.winId())
+            if system.ensure_pinned(hwnd):
+                system.repin_count += 1
+                if not system.desktop_in_front:
+                    system.send_to_bottom(hwnd)
+
     def on_desktop_shown(self, shown):
         """Windows: com "Mostrar área de trabalho" o Ordo sobe junto com ela; depois volta ao fundo."""
-        for w in self.topLevelWidgets():
-            if isinstance(w, DesktopWindow) and w.isVisible():
+        self.repin_windows()
+        for w in self.desktop_windows():
+            if True:
                 hwnd = int(w.winId())
                 if os.environ.get("ORDO_SELFTEST"):
                     QTimer.singleShot(1500, lambda h=hwnd, t=w.windowTitle(): system.desktop_events.append(
@@ -881,7 +896,7 @@ def selftest(app, spec):
                 "boxes": sorted(app.fences), "cards": sorted(app.cards), "notes": len(app.notes),
                 "native_hidden": app.cfg["native_disabled"], "clock": bool(app.clock),
                 "desktop_events": getattr(system, "desktop_events", []),
-                "pin_log": getattr(system, "pin_log", [])[:4],
+                "pin_log": getattr(system, "pin_log", [])[:2], "repins": getattr(system, "repin_count", 0),
                 "owners_now": [system.window_state(int(w.winId()))["owner"] for w in app.topLevelWidgets()
                                if isinstance(w, DesktopWindow) and w.isVisible()][:4] if system.IS_WINDOWS else [],
                 "windows": [w.windowTitle() for w in app.topLevelWidgets() if w.isVisible()]}

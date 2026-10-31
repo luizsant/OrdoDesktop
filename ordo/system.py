@@ -448,6 +448,21 @@ def pin_to_desktop(hwnd):
 
 
 pin_log = []  # diagnóstico do autoteste
+repin_count = 0
+
+
+def ensure_pinned(hwnd):
+    """O Qt às vezes apaga o dono da janela depois de exibi-la; refaz o vínculo com a área de trabalho."""
+    import ctypes
+    user32 = ctypes.windll.user32
+    progman = user32.FindWindowW("Progman", None)
+    if progman and user32.GetWindow(ctypes.c_void_p(hwnd), 4) != progman:  # GW_OWNER
+        set_long = user32.SetWindowLongPtrW
+        set_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
+        set_long.restype = ctypes.c_void_p
+        set_long(hwnd, -8, progman)
+        return True
+    return False
 
 
 def send_to_bottom(hwnd):
