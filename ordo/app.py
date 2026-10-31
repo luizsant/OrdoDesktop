@@ -492,12 +492,8 @@ class OrdoApp(QApplication):
         """Windows: com "Mostrar área de trabalho" o Ordo sobe junto com ela; depois volta ao fundo."""
         self.repin_windows()
         for w in self.desktop_windows():
-            if True:
-                hwnd = int(w.winId())
-                if os.environ.get("ORDO_SELFTEST"):
-                    QTimer.singleShot(1500, lambda h=hwnd, t=w.windowTitle(): system.desktop_events.append(
-                        f"{t[15:]}: {system.window_state(h)}"))
-                system.bring_over_desktop(hwnd) if shown else system.send_to_bottom(hwnd)
+            hwnd = int(w.winId())
+            system.bring_over_desktop(hwnd) if shown else system.send_to_bottom(hwnd)
 
     def quit_app(self):
         # Primeiro deixa de responder como "instância aberta": um Ordo aberto logo em seguida não

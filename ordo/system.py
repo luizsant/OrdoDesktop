@@ -442,7 +442,8 @@ def pin_to_desktop(hwnd):
     prev = set_long(hwnd, -8, progman)  # GWLP_HWNDPARENT = dono da janela
     err = ctypes.windll.kernel32.GetLastError()
     owner = user32.GetWindow(ctypes.c_void_p(hwnd), 4)  # GW_OWNER
-    pin_log.append(f"pin hwnd={hwnd} progman={progman} anterior={prev} erro={err} dono_agora={owner}")
+    if os.environ.get("ORDO_SELFTEST"):
+        pin_log.append(f"pin hwnd={hwnd} progman={progman} anterior={prev} erro={err} dono_agora={owner}")
     send_to_bottom(hwnd)
     return owner == progman
 
@@ -514,7 +515,8 @@ def watch_desktop(on_change):
             return
         if is_desktop != desktop_in_front:
             desktop_in_front = is_desktop
-            desktop_events.append(buf.value)
+            if os.environ.get("ORDO_SELFTEST"):
+                desktop_events.append(buf.value)
             on_change(is_desktop)
 
     callback = proc_type(proc)
