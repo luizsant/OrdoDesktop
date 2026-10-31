@@ -438,9 +438,32 @@ def pin_to_desktop(hwnd):
     set_long = user32.SetWindowLongPtrW
     set_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
     set_long.restype = ctypes.c_void_p
-    set_long(hwnd, -8, progman)  # GWLP_HWNDPARENT = dono da janela
+    ctypes.windll.kernel32.SetLastError(0)
+    prev = set_long(hwnd, -8, progman)  # GWLP_HWNDPARENT = dono da janela
+    err = ctypes.windll.kernel32.GetLastError()
+    owner = user32.GetWindow(ctypes.c_void_p(hwnd), 4)  # GW_OWNER
+    if os.environ.get("ORDO_SELFTEST"):
+        pin_log.append(f"pin hwnd={hwnd} progman={progman} anterior={prev} erro={err} dono_agora={owner}")
     send_to_bottom(hwnd)
-    return True
+    return owner == progman
+
+
+pin_log = []  # diagnóstico do autoteste
+repin_count = 0
+
+
+def ensure_pinned(hwnd):
+    """O Qt às vezes apaga o dono da janela depois de exibi-la; refaz o vínculo com a área de trabalho."""
+    import ctypes
+    user32 = ctypes.windll.user32
+    progman = user32.FindWindowW("Progman", None)
+    if progman and user32.GetWindow(ctypes.c_void_p(hwnd), 4) != progman:  # GW_OWNER
+        set_long = user32.SetWindowLongPtrW
+        set_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
+        set_long.restype = ctypes.c_void_p
+        set_long(hwnd, -8, progman)
+        return True
+    return False
 
 
 def send_to_bottom(hwnd):
@@ -463,5 +486,66 @@ def keep_at_bottom(message):
                     ("y", ctypes.c_int), ("cx", ctypes.c_int), ("cy", ctypes.c_int), ("flags", wintypes.UINT)]
 
     pos = WINDOWPOS.from_address(msg.lParam)
+    if desktop_in_front:  # "Mostrar área de trabalho": o Ordo fica por cima dela, como parte do desktop
+        return
     if not pos.flags & 0x4:  # sem SWP_NOZORDER: alguém está mudando a ordem → manda para o fundo
         pos.hwndInsertAfter = 1  # HWND_BOTTOM
+
+
+desktop_in_front = False  # True enquanto a área de trabalho do Explorer é a janela em primeiro plano
+_hooks = []  # mantém vivos os ganchos de eventos (e seus callbacks) do Windows
+desktop_events = []  # classes que dispararam a troca (diagnóstico do autoteste)
+
+
+def watch_desktop(on_change):
+    """Avisa on_change(True/False) quando a área de trabalho vira (ou deixa de ser) a janela em primeiro
+    plano — o que acontece com Win+D e com o botão "Mostrar área de trabalho" do canto da barra."""
+    import ctypes
+    from ctypes import wintypes
+    user32 = ctypes.windll.user32
+    proc_type = ctypes.WINFUNCTYPE(None, wintypes.HANDLE, wintypes.DWORD, wintypes.HWND, wintypes.LONG,
+                                   wintypes.LONG, wintypes.DWORD, wintypes.DWORD)
+
+    def proc(_hook, _event, hwnd, _obj, _child, _thread, _time):
+        global desktop_in_front
+        buf = ctypes.create_unicode_buffer(64)
+        user32.GetClassNameW(hwnd, buf, 64)
+        is_desktop = buf.value in ("Progman", "WorkerW")
+        if buf.value.startswith("Qt"):  # clique numa janela do próprio Ordo: não muda o estado
+            return
+        if is_desktop != desktop_in_front:
+            desktop_in_front = is_desktop
+            if os.environ.get("ORDO_SELFTEST"):
+                desktop_events.append(buf.value)
+            on_change(is_desktop)
+
+    callback = proc_type(proc)
+    user32.SetWinEventHook.restype = wintypes.HANDLE
+    user32.SetWinEventHook.argtypes = [wintypes.DWORD, wintypes.DWORD, wintypes.HMODULE, proc_type,
+                                       wintypes.DWORD, wintypes.DWORD, wintypes.DWORD]
+    hook = user32.SetWinEventHook(3, 3, None, callback, 0, 0, 0)  # EVENT_SYSTEM_FOREGROUND, fora do processo
+    _hooks.append((hook, callback))
+
+
+def window_state(hwnd):
+    """Diagnóstico: minimizada, visível e "camuflada" pelo DWM (cloaked)."""
+    import ctypes
+    from ctypes import wintypes
+    user32 = ctypes.windll.user32
+    cloaked = wintypes.DWORD(0)
+    ctypes.windll.dwmapi.DwmGetWindowAttribute(ctypes.c_void_p(hwnd), 14, ctypes.byref(cloaked), 4)
+    owner = user32.GetWindow(ctypes.c_void_p(hwnd), 4)  # GW_OWNER
+    return {"iconic": bool(user32.IsIconic(ctypes.c_void_p(hwnd))),
+            "visible": bool(user32.IsWindowVisible(ctypes.c_void_p(hwnd))), "cloaked": cloaked.value,
+            "owner": owner or 0}
+
+
+def bring_over_desktop(hwnd):
+    """Põe a janela por cima (sem ativar) e a reexibe se o Windows a tiver escondido."""
+    import ctypes
+    user32 = ctypes.windll.user32
+    if user32.IsIconic(ctypes.c_void_p(hwnd)) or not user32.IsWindowVisible(ctypes.c_void_p(hwnd)):
+        user32.ShowWindow(ctypes.c_void_p(hwnd), 4)  # SW_SHOWNOACTIVATE
+    SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE = 0x1, 0x2, 0x10
+    user32.SetWindowPos(ctypes.c_void_p(hwnd), ctypes.c_void_p(0), 0, 0, 0, 0,
+                        SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE)  # 0 = HWND_TOP

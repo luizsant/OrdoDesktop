@@ -6,6 +6,13 @@ Todas as mudanças relevantes do Ordo Desktop. O formato segue o
 
 ## [Não lançado]
 
+## [2.0.2] - 2026-10-31
+
+### Corrigido
+- Windows: o Ordo sumia com "Mostrar área de trabalho" (botão do canto da barra de tarefas e Win+D).
+  O Qt desfazia o vínculo das janelas com a área de trabalho logo depois de exibi-las; agora o Ordo
+  refaz esse vínculo e fica visível por cima da área de trabalho, como parte dela.
+
 ## [2.0.1] - 2026-10-29
 
 ### Corrigido

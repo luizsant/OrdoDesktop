@@ -35,7 +35,7 @@ Start-Process notepad.exe
 Start-Sleep 2
 
 # 4. Abre o Ordo com autoteste (ele mesmo fotografa a tela aos 25 s e fecha)
-$env:ORDO_SELFTEST = "$((Resolve-Path $out).Path)\ordo-self.png;25"
+$env:ORDO_SELFTEST = "$((Resolve-Path $out).Path)\ordo-self.png;35"
 $p = Start-Process $exe -PassThru
 Start-Sleep 15
 Shot "$out\tela-com-notepad.png"
@@ -46,7 +46,28 @@ $shell.MinimizeAll()
 Start-Sleep 3
 Shot "$out\tela-mostrar-area-de-trabalho.png"
 Log "Captura após minimizar tudo"
-$p.WaitForExit(30000) | Out-Null
+# "Mostrar área de trabalho" de verdade (botão do canto da barra / Win+D) usa outro mecanismo
+$shell.UndoMinimizeALL()
+Start-Sleep 4
+Add-Type @"
+using System; using System.Runtime.InteropServices; using System.Text;
+public static class Kb {
+  [DllImport("user32.dll")] public static extern void keybd_event(byte k, byte s, uint f, UIntPtr e);
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll")] public static extern int GetClassName(IntPtr h, StringBuilder b, int n);
+  public static void WinD() { keybd_event(0x5B,0,0,UIntPtr.Zero); keybd_event(0x44,0,0,UIntPtr.Zero);
+                              keybd_event(0x44,0,2,UIntPtr.Zero); keybd_event(0x5B,0,2,UIntPtr.Zero); }
+  public static string Fg() { var b = new StringBuilder(64); GetClassName(GetForegroundWindow(), b, 64); return b.ToString(); }
+}
+"@
+Log "Primeiro plano antes do Win+D: $([Kb]::Fg())"
+[Kb]::WinD()
+Start-Sleep 4
+Log "Primeiro plano depois do Win+D: $([Kb]::Fg())"
+Shot "$out\tela-win-d.png"
+Log "Captura após Mostrar área de trabalho (Win+D)"
+[Kb]::WinD()
+$p.WaitForExit(40000) | Out-Null
 Log "Ordo fechou sozinho após o autoteste: $($p.HasExited)"
 $env:ORDO_SELFTEST = ""
 $run = (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -ErrorAction SilentlyContinue).OrdoDesktop
