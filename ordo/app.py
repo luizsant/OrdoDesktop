@@ -881,6 +881,9 @@ def selftest(app, spec):
                 "boxes": sorted(app.fences), "cards": sorted(app.cards), "notes": len(app.notes),
                 "native_hidden": app.cfg["native_disabled"], "clock": bool(app.clock),
                 "desktop_events": getattr(system, "desktop_events", []),
+                "pin_log": getattr(system, "pin_log", [])[:4],
+                "owners_now": [system.window_state(int(w.winId()))["owner"] for w in app.topLevelWidgets()
+                               if isinstance(w, DesktopWindow) and w.isVisible()][:4] if system.IS_WINDOWS else [],
                 "windows": [w.windowTitle() for w in app.topLevelWidgets() if w.isVisible()]}
         with open(os.path.splitext(path)[0] + ".json", "w", encoding="utf-8") as f:
             json.dump(info, f, ensure_ascii=False, indent=2)

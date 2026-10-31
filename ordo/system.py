@@ -438,9 +438,16 @@ def pin_to_desktop(hwnd):
     set_long = user32.SetWindowLongPtrW
     set_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
     set_long.restype = ctypes.c_void_p
-    set_long(hwnd, -8, progman)  # GWLP_HWNDPARENT = dono da janela
+    ctypes.windll.kernel32.SetLastError(0)
+    prev = set_long(hwnd, -8, progman)  # GWLP_HWNDPARENT = dono da janela
+    err = ctypes.windll.kernel32.GetLastError()
+    owner = user32.GetWindow(ctypes.c_void_p(hwnd), 4)  # GW_OWNER
+    pin_log.append(f"pin hwnd={hwnd} progman={progman} anterior={prev} erro={err} dono_agora={owner}")
     send_to_bottom(hwnd)
-    return True
+    return owner == progman
+
+
+pin_log = []  # diagnóstico do autoteste
 
 
 def send_to_bottom(hwnd):
