@@ -51,6 +51,14 @@ on your Desktop into boxes by category and keeps them up to date in real time.
 - **Search** in the clock card: type to find items in your boxes (case- and accent-insensitive);
   boxes filter as you type, Enter opens the first result and Esc clears.
 - **Sticky notes** in several colors, saved automatically.
+- **Gadgets** (turn each one on in Settings → Gadgets):
+  - **Calendar and deadlines**: month view with holidays, a deadline calculator in business days following
+    the Brazilian Civil Procedure Code (start on the next business day, Dec 20 – Jan 20 recess, optional
+    court/state holidays) with a countdown, and timed reminders with on-screen alerts;
+  - **To-do list**, **Favorites** (shortcuts to folders, files and apps), **Clipboard history** (memory only),
+    **World clocks**, **Converter** (currencies at today's rate and units), **Now playing** (Spotify,
+    browser and other players on Linux) and **Image of the day** (Bing, optionally as your wallpaper);
+  - in the clock card: network speed, battery and CPU temperature, when available.
 - **No tray icon**: everything is configured by right-clicking any box, the clock or a note.
 - Starts with your session and hides the native desktop icons while it is running
   (they come back when Ordo closes).
@@ -125,6 +133,8 @@ All public, free and without sign-up or API keys:
 | Data | Source |
 | --- | --- |
 | Weather | [Open-Meteo](https://open-meteo.com) |
+| Image of the day | Bing's daily image |
+| Holidays and deadlines | Calculated on your computer (no internet) |
 | Indices, stocks and currencies | Yahoo Finance public chart endpoint (unofficial, may be delayed up to 15 min) |
 | Crypto in BRL | [AwesomeAPI](https://docs.awesomeapi.com.br) |
 | Selic, CDI, IPCA | [Brazilian Central Bank SGS API](https://dadosabertos.bcb.gov.br) (official) |

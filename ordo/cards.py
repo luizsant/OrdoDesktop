@@ -45,10 +45,34 @@ def card_style(theme):
         QLabel#ntitle {{ font-size: 9.5pt; }}
         QLabel#nsrc {{ color: #9fb2ff; font-size: 7.5pt; font-weight: bold; }}
         QLabel#nwhen {{ color: rgba(255,255,255,0.45); font-size: 7.5pt; }}
+        QLabel#section {{ color: rgba(255,255,255,0.45); font-size: 7.5pt; font-weight: bold; margin-top: 6px; }}
+        QLabel#muted {{ color: rgba(255,255,255,0.55); font-size: 8.5pt; }}
+        QLabel#big {{ font-size: 20pt; font-weight: 300; }}
+        QLabel#strong {{ font-size: 10pt; font-weight: bold; }}
+        QLabel#done {{ color: rgba(255,255,255,0.40); text-decoration: line-through; }}
+        QLabel#ok {{ color: #5fe0a0; font-weight: bold; }}
+        QLabel#warn {{ color: #ffb347; font-weight: bold; }}
+        QLabel#late {{ color: #ff8a8a; font-weight: bold; }}
+        QWidget#row {{ border-radius: 8px; }}
+        QWidget#row:hover {{ background: rgba(255,255,255,0.08); }}
+        QPushButton, QToolButton {{ color: white; background: rgba(255,255,255,0.10);
+                                    border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; padding: 3px 9px; }}
+        QPushButton:hover, QToolButton:hover {{ background: rgba(255,255,255,0.18); }}
+        QToolButton#flat {{ background: transparent; border: none; padding: 2px 5px; }}
+        QToolButton#flat:hover {{ background: rgba(255,255,255,0.12); }}
+        QLineEdit, QComboBox, QDoubleSpinBox {{ color: white; background: rgba(0,0,0,0.25);
+                    border: 1px solid rgba(255,255,255,0.18); border-radius: 7px; padding: 3px 6px; }}
+        QComboBox QAbstractItemView {{ background: #1f2229; color: #e8eaf0; selection-background-color: #3a4060; }}
+        QCheckBox {{ color: white; }}
+        QListWidget {{ background: transparent; border: none; color: white; outline: none; }}
+        QListWidget::item {{ border-radius: 8px; padding: 2px; }}
+        QListWidget::item:hover {{ background: rgba(255,255,255,0.10); }}
+        QListWidget::item:selected {{ background: rgba(120,160,255,0.30); }}
     """
 
 
 class InfoCard(DesktopWindow):
+    EXTRA_H = 70  # cabeçalho + margens do card além do conteúdo
     def __init__(self, app, key, title):
         super().__init__(app, _(title))
         self.key, self.loading = key, False
@@ -94,11 +118,12 @@ class InfoCard(DesktopWindow):
         else:
             self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             self.content.adjustSize()
-            self.resize(self.app.cfg.get("card_width", CARD_W), self.content.sizeHint().height() + 70)
+            self.resize(self.app.cfg.get("card_width", CARD_W), self.content.sizeHint().height() + self.EXTRA_H)
 
     def resizeEvent(self, ev):
         self.grip.move(self.width() - self.grip.width() - 6, self.height() - self.grip.height() - 4)
         super().resizeEvent(ev)
+        self.app.schedule_restack()  # a pilha de cards do Reorganizar se reajusta
 
     def mousePressEvent(self, ev):
         if ev.button() == Qt.LeftButton:
@@ -120,7 +145,8 @@ class InfoCard(DesktopWindow):
         if "w" in self.geom():
             menu.addAction(_("Tamanho automático"), self.reset_size)
         menu.addSeparator()
-        menu.addAction(_("Atualizar agora"), self.refresh)
+        if type(self).refresh is not InfoCard.refresh:  # só cards que buscam dados
+            menu.addAction(_("Atualizar agora"), self.refresh)
         self.extra_menu(menu)
         menu.addSeparator()
         menu.addMenu(self.app.main_menu()).setText(_("Configurações"))
@@ -148,7 +174,11 @@ class InfoCard(DesktopWindow):
                 _clear_layout(item.layout())
 
     def refresh(self):
-        raise NotImplementedError
+        """Cards que buscam dados sobrescrevem; os locais (tarefas, favoritos…) não precisam."""
+
+
+def section(text):
+    return QLabel(text, objectName="section")
 
 
 def _clear_layout(lay):

@@ -6,6 +6,23 @@ Todas as mudanças relevantes do Ordo Desktop. O formato segue o
 
 ## [Não lançado]
 
+## [2.1.0] - 2026-10-31
+
+### Adicionado
+- Menu **Gadgets** para ligar cada card. Novos cards:
+  - **Agenda e prazos**: calendário com feriados (calculados sem internet), prazos em dias úteis pelo CPC
+    (arts. 219, 220 e 224) com lista do que não foi contado, contagem regressiva, aviso diário dos que
+    vencem hoje ou amanhã e lembretes com horário. Por padrão só os feriados nacionais; forenses, do Pará,
+    de Belém e datas extras do tribunal são opcionais.
+  - **Tarefas**, **Favoritos**, **Área de transferência** (só na memória), **Relógios mundiais**,
+    **Conversor** (moedas e unidades), **Tocando agora** (MPRIS, Linux) e **Imagem do dia** (Bing,
+    com opção de papel de parede e de restaurar o original).
+- No card do relógio: velocidade da rede, bateria e temperatura da CPU.
+
+### Alterado
+- "Reorganizar" distribui os cards em colunas ao lado do relógio, sem tirar das caixas o espaço de
+  uma coluna, e encolhe (com rolagem) os cards de leitura longa quando a coluna não cabe na tela.
+
 ## [2.0.2] - 2026-10-31
 
 ### Corrigido

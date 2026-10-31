@@ -49,6 +49,18 @@ está na sua Área de Trabalho em caixas por categoria e as mantém atualizadas 
 - **Busca** no card do relógio: digite para achar itens nas caixas (ignora maiúsculas e acentos);
   as caixas filtram enquanto você digita, Enter abre o primeiro resultado e Esc limpa.
 - **Notas adesivas** coloridas, salvas automaticamente.
+- **Gadgets** (ligue cada um em Configurações → Gadgets):
+  - **Agenda e prazos**: calendário do mês com feriados, calculadora de prazos em dias úteis pelo CPC
+    (começa no primeiro dia útil seguinte, suspensão de 20/12 a 20/01, feriados forenses, do Pará e de
+    Belém opcionais) com contagem regressiva, e lembretes com horário e aviso na tela;
+  - **Tarefas**, **Favoritos** (atalhos para pastas, arquivos e aplicativos), **Área de transferência**
+    (só na memória), **Relógios mundiais**, **Conversor** (moedas com a cotação do dia e unidades),
+    **Tocando agora** (Spotify, navegador e outros players no Linux) e **Imagem do dia** (Bing, com opção de
+    virar papel de parede);
+  - no card do relógio: velocidade da rede, bateria e temperatura da CPU, quando o computador tem.
+
+> A calculadora de prazos é um apoio: confira sempre o calendário do seu tribunal e as suspensões
+> publicadas por ele.
 - **Sem ícone na bandeja**: tudo é configurado pelo botão direito sobre qualquer caixa,
   o relógio ou uma nota.
 - Inicia com o sistema e oculta os ícones nativos da área de trabalho enquanto está aberto
@@ -125,6 +137,8 @@ Todas públicas, gratuitas e sem cadastro nem chave de API:
 | Dado | Fonte |
 | --- | --- |
 | Clima | [Open-Meteo](https://open-meteo.com) |
+| Imagem do dia | Imagem diária do Bing |
+| Feriados e prazos | Calculados no próprio computador (sem internet) |
 | Índices, ações e moedas | Endpoint público de gráficos do Yahoo Finance (não oficial, pode ter atraso de até 15 min) |
 | Cripto em reais | [AwesomeAPI](https://docs.awesomeapi.com.br) |
 | Selic, CDI, IPCA | [API SGS do Banco Central](https://dadosabertos.bcb.gov.br) (oficial) |

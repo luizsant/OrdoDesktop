@@ -94,6 +94,13 @@ def themed(label, name, size, glyphs, color="#ffd76a"):
     label.setPixmap(tinted(name, size, color) or glyph_pixmap(glyphs.get(name, "•"), size, color))
 
 
+def human_rate(bps):
+    for unit, size in (("MB/s", 1e6), ("KB/s", 1e3)):
+        if bps >= size:
+            return f"{i18n.fmt_num(bps / size, 1)} {unit}"
+    return f"{bps:.0f} B/s"
+
+
 def sep():
     w = QWidget(objectName="sep")
     w.setFixedHeight(1)
@@ -236,6 +243,7 @@ class GadgetPanel(QWidget):
         super().__init__()
         self.app = app
         self.stats = system.Stats()
+        self.net = system.NetMeter()
         self.timer_end = None
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 10, 0, 0)
@@ -248,7 +256,12 @@ class GadgetPanel(QWidget):
         grid.setHorizontalSpacing(10)
         grid.setVerticalSpacing(4)
         self.bars = {}
-        for r, (key, label) in enumerate([("cpu", "CPU"), ("mem", "Memória"), ("disk", "Disco")]):
+        rows = [("cpu", "CPU"), ("mem", "Memória"), ("disk", "Disco")]
+        if system.cpu_temperature() is not None:
+            rows.append(("temp", "Temperatura"))
+        if system.battery() is not None:
+            rows.append(("bat", "Bateria"))
+        for r, (key, label) in enumerate(rows):
             bar = QProgressBar(textVisible=False, maximum=1000)
             val = QLabel(objectName="statv", alignment=Qt.AlignRight | Qt.AlignVCenter)
             val.setMinimumWidth(110)
@@ -256,6 +269,13 @@ class GadgetPanel(QWidget):
             grid.addWidget(bar, r, 1)
             grid.addWidget(val, r, 2)
             self.bars[key] = (bar, val)
+        r = len(rows)
+        if system.NetMeter._totals() is not None:  # rede: texto, sem barra
+            self.net_lbl = QLabel(objectName="statv", alignment=Qt.AlignRight | Qt.AlignVCenter)
+            grid.addWidget(QLabel(_("Rede"), objectName="stat"), r, 0)
+            grid.addWidget(self.net_lbl, r, 1, 1, 2)
+        else:
+            self.net_lbl = None
         grid.setColumnStretch(1, 1)
         lay.addLayout(grid)
         lay.addWidget(QLabel(_("ATALHOS"), objectName="section"))
@@ -318,6 +338,21 @@ class GadgetPanel(QWidget):
         self.set_bar("mem", frac, f"{i18n.fmt_num(used, 1)} / {total:.0f} GB")
         frac, free = self.stats.disk()
         self.set_bar("disk", frac, _("{n} GB livres", n=f"{free:.0f}"))
+        if "temp" in self.bars:
+            t = system.cpu_temperature()
+            if t is not None:
+                self.set_bar("temp", min(t / 100, 1), f"{t:.0f} °C")  # 75 °C+ fica laranja, 90 °C+ vermelho
+        if "bat" in self.bars:
+            b = system.battery()
+            if b:
+                pct, charging = b
+                bar, _val = self.bars["bat"]
+                self.set_bar("bat", 1 - pct / 100 if not charging else 0, f"{pct}%" + (" ⚡" if charging else ""))
+                bar.setValue(pct * 10)  # a barra mostra a carga; a cor alerta quando está acabando
+        if self.net_lbl:
+            sp = self.net.speeds()
+            if sp:
+                self.net_lbl.setText(f"↓ {human_rate(sp[0])}   ↑ {human_rate(sp[1])}")
         n = system.trash_count()
         self.set_label("trash", _("Lixeira ({n})", n=n) if n else _("Lixeira"))
         collapsed = bool(self.app.fences) and all(f.collapsed for f in self.app.fences.values())
