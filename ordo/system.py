@@ -503,6 +503,19 @@ def watch_desktop(on_change):
     _hooks.append((hook, callback))
 
 
+def window_state(hwnd):
+    """Diagnóstico: minimizada, visível e "camuflada" pelo DWM (cloaked)."""
+    import ctypes
+    from ctypes import wintypes
+    user32 = ctypes.windll.user32
+    cloaked = wintypes.DWORD(0)
+    ctypes.windll.dwmapi.DwmGetWindowAttribute(ctypes.c_void_p(hwnd), 14, ctypes.byref(cloaked), 4)
+    owner = user32.GetWindow(ctypes.c_void_p(hwnd), 4)  # GW_OWNER
+    return {"iconic": bool(user32.IsIconic(ctypes.c_void_p(hwnd))),
+            "visible": bool(user32.IsWindowVisible(ctypes.c_void_p(hwnd))), "cloaked": cloaked.value,
+            "owner": owner or 0}
+
+
 def bring_over_desktop(hwnd):
     """Põe a janela por cima (sem ativar) e a reexibe se o Windows a tiver escondido."""
     import ctypes

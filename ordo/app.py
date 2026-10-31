@@ -479,6 +479,9 @@ class OrdoApp(QApplication):
         for w in self.topLevelWidgets():
             if isinstance(w, DesktopWindow) and w.isVisible():
                 hwnd = int(w.winId())
+                if os.environ.get("ORDO_SELFTEST"):
+                    QTimer.singleShot(1500, lambda h=hwnd, t=w.windowTitle(): system.desktop_events.append(
+                        f"{t[15:]}: {system.window_state(h)}"))
                 system.bring_over_desktop(hwnd) if shown else system.send_to_bottom(hwnd)
 
     def quit_app(self):
