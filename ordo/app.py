@@ -18,7 +18,9 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFileIconProvide
                                QStyledItemDelegate, QVBoxLayout, QWidget)
 
 from . import i18n, system
+from .agenda import AgendaCard
 from .cards import CARD_W, MarketCard, NewsCard
+from .extras import ClipboardCard, ConverterCard, FavoritesCard, ImageOfDayCard, MediaCard, TodoCard, WorldClockCard
 from .clock import ClockCard
 from .notes import StickyNote
 from .widgets import DesktopWindow, Grip, error, workarea
@@ -350,6 +352,25 @@ def fence_style(theme, color):
 
 # ---------------------------------------------------------------------------
 # Aplicativo
+# Cards opcionais, na ordem em que o Reorganizar os empilha: (chave, nome no menu, classe, ligado de início)
+CARD_TYPES = [
+    ("agenda", "Agenda e prazos", AgendaCard, True),
+    ("todo", "Tarefas", TodoCard, True),
+    ("market", "Mercado financeiro", MarketCard, True),
+    ("news", "Notícias", NewsCard, True),
+    ("favorites", "Favoritos", FavoritesCard, False),
+    ("media", "Tocando agora", MediaCard, False),
+    ("worldclock", "Relógios mundiais", WorldClockCard, False),
+    ("converter", "Conversor", ConverterCard, False),
+    ("clipboard", "Área de transferência", ClipboardCard, False),
+    ("image", "Imagem do dia", ImageOfDayCard, False),
+]
+if system.IS_WINDOWS:  # o player via MPRIS só existe no Linux
+    CARD_TYPES = [c for c in CARD_TYPES if c[0] != "media"]
+CARD_CLASS = {k: cls for k, _n, cls, _on in CARD_TYPES}
+STRETCH = {"news", "todo", "clipboard"}  # podem ocupar a sobra da coluna
+
+
 def fence_height(count, col_w, rows_max=4):
     per_row = max(1, (col_w - 30) // GRID_W)
     return HEADER_H + 22 + min(max(1, -(-count // per_row)), rows_max) * 92
@@ -431,7 +452,10 @@ class OrdoApp(QApplication):
         self.cfg = load_config()
         i18n.set_language(self.cfg["language"])
         self.fences, self.clock, self.notes, self.cards = {}, None, [], {}
-        self.stack_news = self.cards_below_clock = False
+        self.card_columns = []  # [(x, y_inicial, [chaves])] definido pelo Reorganizar
+        for key, _n, _c, on in CARD_TYPES:
+            self.cfg.setdefault(f"show_{key}", on)
+        self.restack_timer = QTimer(self, singleShot=True, interval=120, timeout=self.restack_cards)
         self.query, self.all_items, self.item_count = "", [], 0
         self.first_name = self.real_first_name()
         self.save_timer = QTimer(self, singleShot=True, interval=600, timeout=self.save_now)
@@ -461,13 +485,14 @@ class OrdoApp(QApplication):
         first_run = not self.cfg["boxes"]
         wa = workarea()
         if first_run and wa.width() - 48 - 380 - 16 - CARD_W - 16 < 340:
-            # Tela pequena: relógio + caixas já ocupam tudo; mercado e notícias ficam no menu para ligar.
-            self.cfg["show_market"] = self.cfg["show_news"] = False
+            # Tela pequena: relógio + caixas já ocupam tudo; os cards ficam no menu Gadgets para ligar.
+            for key, *_r in CARD_TYPES:
+                self.cfg[f"show_{key}"] = False
         if self.cfg["show_clock"]:
             self.toggle_clock(True)
         for data in self.cfg["notes"]:
             self.show_note(data)
-        for key in ("market", "news"):
+        for key, *_r in CARD_TYPES:
             if self.cfg[f"show_{key}"]:
                 self.toggle_card(key, True)
         self.refresh()
@@ -561,7 +586,6 @@ class OrdoApp(QApplication):
         wa = workarea()
         margin, gap, col_w = 24, 16, 340
         top, bottom = wa.top() + margin, wa.bottom() - margin
-        market, news = self.cards.get("market"), self.cards.get("news")
         right = wa.right() - margin
         clock_w = 0
         if self.clock:
@@ -570,33 +594,43 @@ class OrdoApp(QApplication):
             right -= clock_w
             self.clock.move(right, top)
             self.clock.geometry_changed()
-        # Cards ao lado do relógio só se ainda couberem duas colunas de caixas; senão, embaixo do relógio.
-        has_cards = bool(market or news)
-        side = has_cards and wa.width() - 2 * margin - clock_w - gap - CARD_W - gap >= col_w
-        if has_cards and not side and self.clock:
-            card_x, card_w = right, clock_w
-            y = self.clock.y() + self.clock.height() + gap
-            fences_right = right - gap
-        else:
-            card_w = CARD_W
-            card_x = right - gap - CARD_W if self.clock else right - CARD_W
-            y = top
-            fences_right = (card_x if has_cards else right) - gap
-        self.cfg["card_width"] = card_w
-        if market:
-            g = market.geom()
+        # Cards em colunas à esquerda do relógio (de cima para baixo, abrindo colunas para a esquerda);
+        # em tela estreita, numa coluna só embaixo do relógio.
+        keys = [k for k, *_r in CARD_TYPES if k in self.cards]
+        for k in keys:
+            g = self.cards[k].geom()
             g.pop("w", None)
             g.pop("h", None)
-            g.update(x=card_x, y=y)
-            market.move(card_x, y)
-            market.fit()
-            y += market.height() + gap
-        if news:
-            news.geom().update(x=card_x, y=y, w=card_w, h=max(200, bottom - y))
-            news.move(card_x, y)
-            news.fit()
-        self.stack_news = bool(market and news)
-        self.cards_below_clock = has_cards and not side and bool(self.clock)
+        side = keys and wa.width() - 2 * margin - clock_w - gap - CARD_W - gap >= col_w
+        self.card_columns = []
+        if keys and not side and self.clock:
+            self.cfg["card_width"] = clock_w
+            self.card_columns = [(right, self.clock.y() + self.clock.height() + gap, keys)]
+            fences_right = right - gap
+        else:
+            self.cfg["card_width"] = CARD_W
+            # Quantas colunas de cards cabem sem tirar das caixas o espaço de uma coluna (340 px).
+            avail = (right - gap if self.clock else right + 1) - (wa.left() + margin) - col_w - gap
+            max_cols = max(1, (avail + gap) // (CARD_W + gap))
+            heights = {}
+            for k in keys:
+                self.cards[k].fit()
+                heights[k] = self.cards[k].height()
+            # Só as colunas necessárias; cada card vai para a coluna mais vazia (na ordem do registro).
+            total = sum(heights.values()) + gap * len(keys)
+            n_cols = max(1, min(max_cols, len(keys), -(-total // (bottom - top))))
+            cols, used = [[] for _i in range(n_cols)], [0] * n_cols
+            for k in keys:
+                i = used.index(min(used))
+                cols[i].append(k)
+                used[i] += heights[k] + gap
+            x = (right - gap if self.clock else right + 1) - CARD_W
+            for col in cols:
+                if col:
+                    self.card_columns.append((x, top, col))
+                    x -= CARD_W + gap
+            fences_right = (x + CARD_W + gap if keys else right) - gap
+        self.restack_cards()
         # Caixas: no espaço à esquerda do relógio/cards, sempre inteiras dentro da tela.
         fences = [self.fences[k] for k, *_r in CATEGORIES if k in self.fences]
         for (fx, fy, fw, fh, collapsed), fence in zip(
@@ -606,32 +640,45 @@ class OrdoApp(QApplication):
             fence.apply_geometry()
         self.schedule_save()
 
+    def schedule_restack(self):
+        if self.card_columns:
+            self.restack_timer.start()
+
     def restack_cards(self):
-        """Depois do Reorganizar, mantém a pilha relógio → mercado → notícias quando algo muda de altura
-        (o clima e as cotações chegam depois e mudam o tamanho dos cards)."""
-        market, news = self.cards.get("market"), self.cards.get("news")
+        """Mantém as pilhas de cards do Reorganizar quando eles mudam de altura (dados chegam depois)."""
         bottom = workarea().bottom() - 24
-        y = None
-        if self.cards_below_clock and self.clock:
-            y = self.clock.y() + self.clock.height() + 16
-            for card in (market, news):
-                if card:
-                    card.geom().update(x=card.x(), y=y)
-                    card.move(card.x(), y)
-                    if card is news:
-                        news.geom().update(h=max(200, bottom - y))
-                        news.fit()
-                    y += card.height() + 16
-        elif self.stack_news and market and news:
-            y = market.y() + market.height() + 16
-            news.geom().update(x=news.x(), y=y, h=max(200, bottom - y))
-            news.move(news.x(), y)
-            news.fit()
-        if y is not None:
-            self.schedule_save()
+        for x, y0, keys in self.card_columns:
+            if self.clock and y0 > workarea().top() + 24:  # coluna embaixo do relógio acompanha a altura dele
+                y0 = self.clock.y() + self.clock.height() + 16
+            cards = [self.cards[k] for k in keys if k in self.cards]
+            # Coluna maior que a tela: encolhe os cards mais altos (eles ganham rolagem) até caber.
+            excess = sum(c.height() for c in cards) + 16 * (len(cards) - 1) - (bottom - y0)
+            # Os de leitura longa encolhem primeiro; a agenda por último.
+            order = {"news": 0, "image": 1, "clipboard": 2, "market": 3, "todo": 4, "converter": 5,
+                     "worldclock": 6, "favorites": 7, "media": 8, "agenda": 9}
+            for c in sorted(cards, key=lambda c: (order.get(c.key, 5), -c.height())):
+                if excess <= 0:
+                    break
+                new_h = max(150, c.height() - excess)
+                if new_h < c.height():
+                    excess -= c.height() - new_h
+                    c.geom().update(w=self.cfg.get("card_width", CARD_W), h=new_h)
+                    c.fit()
+            y = y0
+            for i, card in enumerate(cards):
+                g = card.geom()
+                g.update(x=x, y=y)
+                last = i == len(cards) - 1
+                if last and card.key in STRETCH and bottom - y > 200:  # a última ocupa o resto da coluna
+                    g.update(w=self.cfg.get("card_width", CARD_W), h=bottom - y)
+                if card.pos() != card.pos().__class__(x, y):
+                    card.move(x, y)
+                card.fit()
+                y += card.height() + 16
+        self.schedule_save()
 
     def cards_moved_by_user(self):
-        self.stack_news = self.cards_below_clock = False  # o usuário posicionou à mão: respeita
+        self.card_columns = []  # o usuário posicionou à mão: respeita
 
     def place_new(self, fence):
         wa = workarea()
@@ -736,11 +783,11 @@ class OrdoApp(QApplication):
         self.cfg[f"show_{key}"] = show
         card = self.cards.get(key)
         if show and not card:
-            card = self.cards[key] = (MarketCard if key == "market" else NewsCard)(self)
-            if "x" not in card.geom():
+            card = self.cards[key] = CARD_CLASS[key](self)
+            if "x" not in card.geom():  # card novo: aparece perto do centro, em cascata
                 wa = workarea()
-                y = wa.top() + 24 + (0 if key == "market" else 500)
-                card.move(wa.right() - 24 - 405 - 16 - CARD_W, y)
+                n = len(self.cards)
+                card.move(wa.center().x() - CARD_W // 2 + 28 * n, wa.top() + 80 + 28 * n)
             card.fit()
             card.show()
         elif not show and card:
@@ -840,8 +887,11 @@ class OrdoApp(QApplication):
         check(_("Mostrar relógio"), "show_clock", self.toggle_clock)
         check(_("Mostrar segundos"), "show_seconds")
         check(_("Mostrar gadgets abaixo do relógio"), "show_gadgets", self.set_gadgets)
-        check(_("Mostrar mercado financeiro"), "show_market", lambda on: self.toggle_card("market", on))
-        check(_("Mostrar notícias"), "show_news", lambda on: self.toggle_card("news", on))
+        gadgets = menu.addMenu(_("Gadgets"))
+        for key, name, _cls, _on in CARD_TYPES:
+            act = QAction(_(name), gadgets, checkable=True, checked=self.cfg[f"show_{key}"])
+            act.toggled.connect(lambda on, k=key: self.toggle_card(k, on))
+            gadgets.addAction(act)
         check(_("Ocultar ícones nativos da área de trabalho"), "hide_native", self.apply_hide_native)
         check(_("Mostrar arquivos ocultos"), "show_hidden")
         check(_("Iniciar com o sistema"), "autostart")

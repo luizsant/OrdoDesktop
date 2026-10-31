@@ -8,6 +8,7 @@ python packaging\windows\make_ico.py
 pyinstaller --noconfirm --clean --windowed --name OrdoDesktop `
   --icon packaging\windows\ordo.ico `
   --add-data "ordo-desktop.svg;." `
+  --collect-data tzdata `
   --paths . `
   packaging\windows\launcher.py
 $env:ORDO_VERSION = $Version

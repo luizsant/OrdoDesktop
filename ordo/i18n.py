@@ -239,3 +239,135 @@ def fmt_num(v, dec=2):
 def fold(text):
     """Minúsculas e sem acentos, para a busca: "Orçamento" combina com "orcamento"."""
     return "".join(c for c in unicodedata.normalize("NFD", text.casefold()) if unicodedata.category(c) != "Mn")
+
+
+# ---------------------------------------------------------------------------
+# Textos dos gadgets (versão 2.1)
+# ---------------------------------------------------------------------------
+TR["en"].update({
+    "Gadgets": "Gadgets", "Agenda e prazos": "Calendar and deadlines", "Tarefas": "To-do",
+    "Mercado financeiro": "Market", "Favoritos": "Favorites", "Tocando agora": "Now playing",
+    "Relógios mundiais": "World clocks", "Conversor": "Converter", "Área de transferência": "Clipboard",
+    "Imagem do dia": "Image of the day", "Rede": "Network", "Bateria": "Battery", "Temperatura": "Temperature",
+    "Remover": "Remove", "Descrição": "Description", "Quando": "When", "O quê": "What",
+    # agenda
+    "PRAZOS": "DEADLINES", "LEMBRETES": "REMINDERS", "+ Prazo": "+ Deadline", "+ Lembrete": "+ Reminder",
+    "Prazo": "Deadline", "Lembrete": "Reminder", "Vencimento": "Due date", "Prazos vencendo": "Deadlines due",
+    "Nenhum prazo. Use “+ Prazo” para calcular um.": "No deadlines. Use “+ Deadline” to calculate one.",
+    "Nenhum lembrete.": "No reminders.", "vencido": "overdue", "vence hoje": "due today",
+    "falta 1 dia útil": "1 business day left", "faltam {n} dias úteis": "{n} business days left",
+    "vence {d}": "due {d}", "avisado": "notified", "Voltar para hoje": "Back to today",
+    "Novo lembrete em {d}": "New reminder on {d}", "Prazo a partir de {d}": "Deadline starting {d}",
+    "Feriados considerados": "Holidays counted", "Feriados nacionais": "National holidays (Brazil)",
+    "Feriados forenses (Carnaval, Semana Santa, Corpus Christi, 8/12)":
+        "Court holidays (Carnival, Holy Week, Corpus Christi, Dec 8)",
+    "Feriados do Pará": "Pará state holidays", "Feriados de Belém": "Belém city holidays",
+    "Suspensão de 20/12 a 20/01 (art. 220 do CPC)": "Court recess Dec 20 – Jan 20 (CPC art. 220)",
+    "Suspensão de prazos (20/12 a 20/01)": "Deadlines suspended (Dec 20 – Jan 20)",
+    "Feriados extras do meu tribunal…": "My court's extra holidays…",
+    "Feriados extras do meu tribunal": "My court's extra holidays",
+    "Um por linha: AAAA-MM-DD = Nome (só naquele ano) ou MM-DD = Nome (todo ano).":
+        "One per line: YYYY-MM-DD = Name (that year only) or MM-DD = Name (every year).",
+    "Audiência, reunião, ligar para…": "Hearing, meeting, call…",
+    "Contestação, recurso, processo…": "Answer, appeal, case number…",
+    "Intimação / publicação": "Service / publication date", "dias úteis": "business days",
+    "dias corridos": "calendar days", "Não contou: {lista}": "Not counted: {lista}",
+    "Conta a partir do primeiro dia útil seguinte (art. 224 do CPC). Confira os feriados do seu tribunal no menu "
+    "do card (botão direito → Feriados considerados).":
+        "Counting starts on the next business day (Brazilian CPC art. 224). Check your court's holidays in the "
+        "card menu (right-click → Holidays counted).",
+    "Confraternização Universal": "New Year's Day", "Sexta-feira Santa": "Good Friday", "Tiradentes": "Tiradentes",
+    "Dia do Trabalho": "Labour Day", "Independência": "Independence Day",
+    "Nossa Senhora Aparecida": "Our Lady of Aparecida", "Finados": "All Souls' Day",
+    "Proclamação da República": "Republic Day", "Consciência Negra": "Black Consciousness Day", "Natal": "Christmas",
+    "Carnaval (segunda)": "Carnival (Monday)", "Carnaval (terça)": "Carnival (Tuesday)",
+    "Quinta-feira Santa": "Holy Thursday", "Corpus Christi": "Corpus Christi", "Dia da Justiça": "Justice Day",
+    "Adesão do Pará à Independência": "Pará's adhesion to Independence", "Aniversário de Belém": "Belém Anniversary",
+    # tarefas, favoritos, área de transferência
+    "Nova tarefa — Enter para adicionar": "New task — press Enter to add", "{n} pendentes": "{n} pending",
+    "Nada por aqui. Escreva acima e tecle Enter.": "Nothing here. Type above and press Enter.",
+    "Limpar concluídas": "Clear completed", "Remover dos favoritos": "Remove from favorites",
+    "Adicionar pasta…": "Add folder…", "Adicionar arquivo…": "Add file…", "Adicionar aplicativo…": "Add app…",
+    "Adicionar pasta": "Add folder", "Adicionar arquivo": "Add file", "Adicionar aplicativo": "Add app",
+    "Arraste para cá pastas, arquivos ou aplicativos (o original continua onde está), ou use o botão direito → "
+    "Adicionar.": "Drag folders, files or apps here (the original stays where it is), or right-click → Add.",
+    "não fica salvo": "not saved", "copiado!": "copied!", "Limpar histórico": "Clear history",
+    "O histórico fica só na memória e some ao fechar o Ordo.": "History is kept in memory only and is cleared when "
+                                                               "Ordo closes.",
+    "O que você copiar aparece aqui.": "Whatever you copy shows up here.",
+    # relógios, conversor, música, imagem
+    "mesmo horário": "same time", "amanhã": "tomorrow", "ontem": "yesterday", "Escolher cidades…": "Choose cities…",
+    "Um fuso por linha (ex.: America/Belem, Europe/Paris). Escolha abaixo para acrescentar.":
+        "One time zone per line (e.g. America/New_York, Europe/Paris). Pick below to add.",
+    "MOEDAS": "CURRENCIES", "UNIDADES": "UNITS", "Inverter": "Swap", "Comprimento": "Length", "Massa": "Mass",
+    "Área": "Area", "Volume": "Volume", "Dados": "Data",
+    "Nada tocando": "Nothing playing", "tocando": "playing", "pausado": "paused",
+    "Toque algo no Spotify, no navegador ou em outro player.": "Play something in Spotify, your browser or another "
+                                                               "player.",
+    "Usar como papel de parede": "Set as wallpaper", "Trocar o papel de parede todo dia": "Change wallpaper daily",
+    "Restaurar papel de parede original": "Restore original wallpaper",
+})
+TR["es"].update({
+    "Gadgets": "Gadgets", "Agenda e prazos": "Agenda y plazos", "Tarefas": "Tareas",
+    "Mercado financeiro": "Mercado", "Favoritos": "Favoritos", "Tocando agora": "Reproduciendo",
+    "Relógios mundiais": "Relojes mundiales", "Conversor": "Conversor", "Área de transferência": "Portapapeles",
+    "Imagem do dia": "Imagen del día", "Rede": "Red", "Bateria": "Batería", "Temperatura": "Temperatura",
+    "Remover": "Quitar", "Descrição": "Descripción", "Quando": "Cuándo", "O quê": "Qué",
+    "PRAZOS": "PLAZOS", "LEMBRETES": "RECORDATORIOS", "+ Prazo": "+ Plazo", "+ Lembrete": "+ Recordatorio",
+    "Prazo": "Plazo", "Lembrete": "Recordatorio", "Vencimento": "Vencimiento", "Prazos vencendo": "Plazos que vencen",
+    "Nenhum prazo. Use “+ Prazo” para calcular um.": "Ningún plazo. Usa «+ Plazo» para calcular uno.",
+    "Nenhum lembrete.": "Ningún recordatorio.", "vencido": "vencido", "vence hoje": "vence hoy",
+    "falta 1 dia útil": "falta 1 día hábil", "faltam {n} dias úteis": "faltan {n} días hábiles",
+    "vence {d}": "vence {d}", "avisado": "avisado", "Voltar para hoje": "Volver a hoy",
+    "Novo lembrete em {d}": "Nuevo recordatorio el {d}", "Prazo a partir de {d}": "Plazo desde el {d}",
+    "Feriados considerados": "Feriados considerados", "Feriados nacionais": "Feriados nacionales (Brasil)",
+    "Feriados forenses (Carnaval, Semana Santa, Corpus Christi, 8/12)":
+        "Feriados judiciales (Carnaval, Semana Santa, Corpus Christi, 8/12)",
+    "Feriados do Pará": "Feriados de Pará", "Feriados de Belém": "Feriados de Belém",
+    "Suspensão de 20/12 a 20/01 (art. 220 do CPC)": "Suspensión del 20/12 al 20/01 (art. 220 del CPC)",
+    "Suspensão de prazos (20/12 a 20/01)": "Plazos suspendidos (20/12 al 20/01)",
+    "Feriados extras do meu tribunal…": "Feriados extra de mi tribunal…",
+    "Feriados extras do meu tribunal": "Feriados extra de mi tribunal",
+    "Um por linha: AAAA-MM-DD = Nome (só naquele ano) ou MM-DD = Nome (todo ano).":
+        "Uno por línea: AAAA-MM-DD = Nombre (solo ese año) o MM-DD = Nombre (todos los años).",
+    "Audiência, reunião, ligar para…": "Audiencia, reunión, llamar a…",
+    "Contestação, recurso, processo…": "Contestación, recurso, expediente…",
+    "Intimação / publicação": "Notificación / publicación", "dias úteis": "días hábiles",
+    "dias corridos": "días corridos", "Não contou: {lista}": "No contó: {lista}",
+    "Conta a partir do primeiro dia útil seguinte (art. 224 do CPC). Confira os feriados do seu tribunal no menu "
+    "do card (botão direito → Feriados considerados).":
+        "Cuenta desde el primer día hábil siguiente (art. 224 del CPC de Brasil). Revisa los feriados de tu tribunal "
+        "en el menú de la tarjeta (clic derecho → Feriados considerados).",
+    "Confraternização Universal": "Año Nuevo", "Sexta-feira Santa": "Viernes Santo", "Tiradentes": "Tiradentes",
+    "Dia do Trabalho": "Día del Trabajo", "Independência": "Independencia",
+    "Nossa Senhora Aparecida": "Nuestra Señora Aparecida", "Finados": "Día de Difuntos",
+    "Proclamação da República": "Proclamación de la República", "Consciência Negra": "Día de la Conciencia Negra",
+    "Natal": "Navidad", "Carnaval (segunda)": "Carnaval (lunes)", "Carnaval (terça)": "Carnaval (martes)",
+    "Quinta-feira Santa": "Jueves Santo", "Corpus Christi": "Corpus Christi", "Dia da Justiça": "Día de la Justicia",
+    "Adesão do Pará à Independência": "Adhesión de Pará a la Independencia",
+    "Aniversário de Belém": "Aniversario de Belém",
+    "Nova tarefa — Enter para adicionar": "Nueva tarea — Intro para añadir", "{n} pendentes": "{n} pendientes",
+    "Nada por aqui. Escreva acima e tecle Enter.": "Nada por aquí. Escribe arriba y pulsa Intro.",
+    "Limpar concluídas": "Borrar completadas", "Remover dos favoritos": "Quitar de favoritos",
+    "Adicionar pasta…": "Añadir carpeta…", "Adicionar arquivo…": "Añadir archivo…",
+    "Adicionar aplicativo…": "Añadir aplicación…", "Adicionar pasta": "Añadir carpeta",
+    "Adicionar arquivo": "Añadir archivo", "Adicionar aplicativo": "Añadir aplicación",
+    "Arraste para cá pastas, arquivos ou aplicativos (o original continua onde está), ou use o botão direito → "
+    "Adicionar.": "Arrastra aquí carpetas, archivos o aplicaciones (el original queda donde está), o usa clic "
+                  "derecho → Añadir.",
+    "não fica salvo": "no se guarda", "copiado!": "¡copiado!", "Limpar histórico": "Borrar historial",
+    "O histórico fica só na memória e some ao fechar o Ordo.": "El historial queda solo en la memoria y se borra al "
+                                                               "cerrar Ordo.",
+    "O que você copiar aparece aqui.": "Lo que copies aparece aquí.",
+    "mesmo horário": "misma hora", "amanhã": "mañana", "ontem": "ayer", "Escolher cidades…": "Elegir ciudades…",
+    "Um fuso por linha (ex.: America/Belem, Europe/Paris). Escolha abaixo para acrescentar.":
+        "Un huso por línea (ej.: Europe/Madrid, America/Buenos_Aires). Elige abajo para añadir.",
+    "MOEDAS": "MONEDAS", "UNIDADES": "UNIDADES", "Inverter": "Invertir", "Comprimento": "Longitud", "Massa": "Masa",
+    "Área": "Área", "Volume": "Volumen", "Dados": "Datos",
+    "Nada tocando": "Nada sonando", "tocando": "sonando", "pausado": "en pausa",
+    "Toque algo no Spotify, no navegador ou em outro player.": "Reproduce algo en Spotify, en el navegador o en otro "
+                                                               "reproductor.",
+    "Usar como papel de parede": "Usar como fondo de pantalla",
+    "Trocar o papel de parede todo dia": "Cambiar el fondo de pantalla cada día",
+    "Restaurar papel de parede original": "Restaurar el fondo de pantalla original",
+})

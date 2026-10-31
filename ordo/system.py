@@ -7,6 +7,7 @@ import json
 import os
 import re
 import subprocess
+import time
 import sys
 
 IS_WINDOWS = sys.platform == "win32"
@@ -549,3 +550,151 @@ def bring_over_desktop(hwnd):
     SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE = 0x1, 0x2, 0x10
     user32.SetWindowPos(ctypes.c_void_p(hwnd), ctypes.c_void_p(0), 0, 0, 0, 0,
                         SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE)  # 0 = HWND_TOP
+
+
+# ---------------------------------------------------------------------------
+# Rede, bateria e temperatura (gadgets do relógio). None quando o computador não tem o dado.
+# ---------------------------------------------------------------------------
+class NetMeter:
+    """Velocidade de download/upload a partir dos contadores do sistema (bytes por segundo)."""
+
+    def __init__(self):
+        self.prev = (self._totals(), time.monotonic())
+
+    @staticmethod
+    def _totals():
+        if IS_WINDOWS:
+            return None
+        rx = tx = 0
+        try:
+            with open("/proc/net/dev") as f:
+                for line in f.readlines()[2:]:
+                    name, data = line.split(":", 1)
+                    if name.strip() == "lo":
+                        continue
+                    cols = data.split()
+                    rx, tx = rx + int(cols[0]), tx + int(cols[8])
+        except (OSError, ValueError, IndexError):
+            return None
+        return rx, tx
+
+    def speeds(self):
+        now, t = self._totals(), time.monotonic()
+        (prev, pt), self.prev = self.prev, (now, t)
+        if now is None or prev is None or t <= pt:
+            return None
+        return max(0, now[0] - prev[0]) / (t - pt), max(0, now[1] - prev[1]) / (t - pt)
+
+
+def battery():
+    """(porcentagem, carregando) ou None se não houver bateria."""
+    if IS_WINDOWS:
+        import ctypes
+
+        class SPS(ctypes.Structure):
+            _fields_ = [("ACLineStatus", ctypes.c_byte), ("BatteryFlag", ctypes.c_byte),
+                        ("BatteryLifePercent", ctypes.c_byte), ("SystemStatusFlag", ctypes.c_byte),
+                        ("BatteryLifeTime", ctypes.c_ulong), ("BatteryFullLifeTime", ctypes.c_ulong)]
+
+        s = SPS()
+        if not ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(s)) or s.BatteryFlag & 128:
+            return None  # 128 = sem bateria
+        pct = s.BatteryLifePercent & 0xFF
+        return (pct, s.ACLineStatus == 1) if pct <= 100 else None
+    import glob
+    for d in sorted(glob.glob("/sys/class/power_supply/BAT*")):
+        try:
+            with open(os.path.join(d, "capacity")) as f:
+                pct = int(f.read().strip())
+            with open(os.path.join(d, "status")) as f:
+                status = f.read().strip()
+            return pct, status in ("Charging", "Full")
+        except (OSError, ValueError):
+            continue
+    return None
+
+
+def cpu_temperature():
+    """Temperatura do processador em °C, ou None."""
+    if IS_WINDOWS:
+        return None  # exige privilégios de administrador (WMI MSAcpi_ThermalZoneTemperature)
+    import glob
+    for h in glob.glob("/sys/class/hwmon/hwmon*"):
+        try:
+            with open(os.path.join(h, "name")) as f:
+                name = f.read().strip()
+            if name in ("coretemp", "k10temp", "zenpower", "cpu_thermal", "acpitz"):
+                with open(os.path.join(h, "temp1_input")) as f:
+                    return int(f.read().strip()) / 1000
+        except (OSError, ValueError):
+            continue
+    for z in glob.glob("/sys/class/thermal/thermal_zone*"):
+        try:
+            with open(os.path.join(z, "type")) as f:
+                if f.read().strip() in ("x86_pkg_temp", "cpu-thermal", "TCPU"):
+                    with open(os.path.join(z, "temp")) as t:
+                        return int(t.read().strip()) / 1000
+        except (OSError, ValueError):
+            continue
+    return None
+
+
+def set_wallpaper(path):
+    """Troca o papel de parede. Retorna o anterior (para poder restaurar)."""
+    if IS_WINDOWS:
+        import ctypes
+        buf = ctypes.create_unicode_buffer(512)
+        ctypes.windll.user32.SystemParametersInfoW(0x0073, 512, buf, 0)  # SPI_GETDESKWALLPAPER
+        ctypes.windll.user32.SystemParametersInfoW(0x0014, 0, path, 3)   # SPI_SETDESKWALLPAPER, salva e avisa
+        return buf.value
+    get = lambda k: subprocess.run(["gsettings", "get", "org.gnome.desktop.background", k],  # noqa: E731
+                                   capture_output=True, text=True).stdout.strip().strip("'")
+    old = get("picture-uri")
+    uri = "file://" + path
+    for key in ("picture-uri", "picture-uri-dark"):
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.background", key, uri], check=False)
+    return old[7:] if old.startswith("file://") else old
+
+
+# ---------------------------------------------------------------------------
+# Música tocando (MPRIS, Linux): Spotify, navegadores, Rhythmbox, VLC…
+# ---------------------------------------------------------------------------
+def _gdbus(*args):
+    return subprocess.run(["gdbus", "call", "--session", *args], capture_output=True, text=True,
+                          timeout=3).stdout
+
+
+def media_now():
+    """Dados do player mais relevante (o que está tocando, senão o primeiro) ou None."""
+    if IS_WINDOWS:
+        return None
+    try:
+        names = re.findall(r"'(org\.mpris\.MediaPlayer2\.[^']+)'", _gdbus(
+            "--dest", "org.freedesktop.DBus", "--object-path", "/org/freedesktop/DBus",
+            "--method", "org.freedesktop.DBus.ListNames"))
+        players = []
+        for n in names:
+            out = _gdbus("--dest", n, "--object-path", "/org/mpris/MediaPlayer2",
+                         "--method", "org.freedesktop.DBus.Properties.GetAll", "org.mpris.MediaPlayer2.Player")
+            status = re.search(r"'PlaybackStatus': <'(\w+)'>", out)
+            title = re.search(r"'xesam:title': <'((?:[^'\\]|\\.)*)'>", out)
+            artist = re.search(r"'xesam:artist': <\['((?:[^'\\]|\\.)*)'", out)
+            art = re.search(r"'mpris:artUrl': <'([^']*)'>", out)
+            players.append({"bus": n, "status": status.group(1) if status else "Stopped",
+                            "title": title.group(1).replace("\\'", "'") if title else "",
+                            "artist": artist.group(1).replace("\\'", "'") if artist else "",
+                            "art": art.group(1) if art else "",
+                            "app": n.split(".")[3].split("_")[0].capitalize()})
+    except (OSError, subprocess.SubprocessError):
+        return None
+    players.sort(key=lambda p: (p["status"] != "Playing", not p["title"]))
+    return players[0] if players else None
+
+
+def media_command(bus, method):
+    """Previous / PlayPause / Next no player indicado."""
+    try:
+        _gdbus("--dest", bus, "--object-path", "/org/mpris/MediaPlayer2",
+               "--method", f"org.mpris.MediaPlayer2.Player.{method}")
+    except (OSError, subprocess.SubprocessError):
+        pass
