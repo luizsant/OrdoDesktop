@@ -463,5 +463,50 @@ def keep_at_bottom(message):
                     ("y", ctypes.c_int), ("cx", ctypes.c_int), ("cy", ctypes.c_int), ("flags", wintypes.UINT)]
 
     pos = WINDOWPOS.from_address(msg.lParam)
+    if desktop_in_front:  # "Mostrar área de trabalho": o Ordo fica por cima dela, como parte do desktop
+        return
     if not pos.flags & 0x4:  # sem SWP_NOZORDER: alguém está mudando a ordem → manda para o fundo
         pos.hwndInsertAfter = 1  # HWND_BOTTOM
+
+
+desktop_in_front = False  # True enquanto a área de trabalho do Explorer é a janela em primeiro plano
+_hooks = []  # mantém vivos os ganchos de eventos (e seus callbacks) do Windows
+
+
+def watch_desktop(on_change):
+    """Avisa on_change(True/False) quando a área de trabalho vira (ou deixa de ser) a janela em primeiro
+    plano — o que acontece com Win+D e com o botão "Mostrar área de trabalho" do canto da barra."""
+    import ctypes
+    from ctypes import wintypes
+    user32 = ctypes.windll.user32
+    proc_type = ctypes.WINFUNCTYPE(None, wintypes.HANDLE, wintypes.DWORD, wintypes.HWND, wintypes.LONG,
+                                   wintypes.LONG, wintypes.DWORD, wintypes.DWORD)
+
+    def proc(_hook, _event, hwnd, _obj, _child, _thread, _time):
+        global desktop_in_front
+        buf = ctypes.create_unicode_buffer(64)
+        user32.GetClassNameW(hwnd, buf, 64)
+        is_desktop = buf.value in ("Progman", "WorkerW")
+        if buf.value.startswith("Qt"):  # clique numa janela do próprio Ordo: não muda o estado
+            return
+        if is_desktop != desktop_in_front:
+            desktop_in_front = is_desktop
+            on_change(is_desktop)
+
+    callback = proc_type(proc)
+    user32.SetWinEventHook.restype = wintypes.HANDLE
+    user32.SetWinEventHook.argtypes = [wintypes.DWORD, wintypes.DWORD, wintypes.HMODULE, proc_type,
+                                       wintypes.DWORD, wintypes.DWORD, wintypes.DWORD]
+    hook = user32.SetWinEventHook(3, 3, None, callback, 0, 0, 0)  # EVENT_SYSTEM_FOREGROUND, fora do processo
+    _hooks.append((hook, callback))
+
+
+def bring_over_desktop(hwnd):
+    """Põe a janela por cima (sem ativar) e a reexibe se o Windows a tiver escondido."""
+    import ctypes
+    user32 = ctypes.windll.user32
+    if user32.IsIconic(ctypes.c_void_p(hwnd)) or not user32.IsWindowVisible(ctypes.c_void_p(hwnd)):
+        user32.ShowWindow(ctypes.c_void_p(hwnd), 4)  # SW_SHOWNOACTIVATE
+    SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE = 0x1, 0x2, 0x10
+    user32.SetWindowPos(ctypes.c_void_p(hwnd), ctypes.c_void_p(0), 0, 0, 0, 0,
+                        SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE)  # 0 = HWND_TOP

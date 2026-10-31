@@ -451,6 +451,8 @@ class OrdoApp(QApplication):
             system.set_autostart(self.cfg["autostart"])
         except OSError as e:  # sem permissão no registro/pasta: o resto do app funciona igual
             log_error(f"iniciar com o sistema: {e}")
+        if system.IS_WINDOWS and not os.environ.get("ORDO_TEST_ABOVE"):
+            system.watch_desktop(self.on_desktop_shown)
         self.watcher = QFileSystemWatcher(system.desktop_dirs(), self)
         self.watcher.directoryChanged.connect(lambda _p: self.refresh_timer.start())
         first_run = not self.cfg["boxes"]
@@ -471,6 +473,13 @@ class OrdoApp(QApplication):
         # Por último: se algo acima falhar, os ícones nativos continuam onde estavam.
         if self.cfg["hide_native"]:
             self.apply_hide_native(True)
+
+    def on_desktop_shown(self, shown):
+        """Windows: com "Mostrar área de trabalho" o Ordo sobe junto com ela; depois volta ao fundo."""
+        for w in self.topLevelWidgets():
+            if isinstance(w, DesktopWindow) and w.isVisible():
+                hwnd = int(w.winId())
+                system.bring_over_desktop(hwnd) if shown else system.send_to_bottom(hwnd)
 
     def quit_app(self):
         # Primeiro deixa de responder como "instância aberta": um Ordo aberto logo em seguida não
